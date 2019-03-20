@@ -6,14 +6,13 @@ class Being:
         self.Master=Master
         self.position=position      # (x,y) for position in pixels
         self.cell=(int(position[0]),int(position[1]))                  # The cell the being is in
-        self.speed=speed                # (vr,vteta) vr is the norm and vteta the angle of the speed
+        self.speed=(0,0)                # (vr,vteta) vr is the norm and vteta the angle of the speed
         self.vision=vision              #vision distance
         self.hearing=hearing                    #hearing threshold
         self.strength=strength              #physical trait (don't change)
         self.agilty=agility                 #agility trait (don't change)
         self.stop=0                         #countdown when the entity stop moving
         self.maxspeed=maxspeed              #maximal speed
-        self.speed=(0,0)
 
     def move(self,t):
         if self.stop==0:                                                            #verif that the entity can move
