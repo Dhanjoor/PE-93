@@ -21,7 +21,23 @@ class Being:
             self.cell=self.master.which_cell(self.position[0],self.position[1])
         else:                                                                       #decrease by one the countdown
             self.stop-=1
-
+    
+    def Z_proximity(self):
+        n,m=self.cell
+        L=[]
+        for Z in self.Master.Zombies:
+            if abs(Z.cell[0]-n)+abs(Z.cell[1]-m)<=D_interaction
+            L.append(Z)
+        return L
+    
+    def H_proximity(self):
+        n,m=self.cell
+        L=[]
+        for H in self.Master.Humans:
+            if abs(H.cell[0]-n)+abs(H.cell[1]-m)<=D_interaction
+            L.append(H)
+        return L
+    
     def detectSound(self):
         x,y=self.cell
         u,v=0,0
@@ -45,7 +61,7 @@ class Being:
             v+=self.Master.Map[x][y+1].sound
 
         return(u,v)
-        #pas pris en compte hearing et le son en (x,y) ici
+        # sound in (x,y) and hearing aren't used
 
 class Zombie(Being):
     def __init__(self,Master,position):
