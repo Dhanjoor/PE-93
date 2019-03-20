@@ -27,7 +27,7 @@ class Visualisator(Tk):
         self.canvas.bind('<Button-1>',self.clic)
 
     def load(self):
-        with open('Map.txt',"r") as f:
+        with open('saves/Map.txt',"r") as f:
             text=f.read()
         lines=text.split('\n')
         batis=lines[-1]
@@ -114,7 +114,35 @@ class Visualisator(Tk):
             self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#4a235a'))
 
     def clic(self,event):
-        self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),8)
+        #self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),8)
+        self.run()
+
+    def run(self):
+        with open("Sauvegarde.txt","r") as f:
+            text=f.read()
+        turns=text.split("***\n")
+        def go(t):
+            Lh,Lz=[],[]
+            lines=turns[t].split("\n")
+            print(lines)
+            debut,fin=1,int(lines[0])+1
+            for i in range(debut,fin):
+                humain=lines[i].split("/")
+                Lh.append((float(humain[0]),float(humain[1])))
+            debut,fin=fin+1,fin+1+int(lines[fin])
+            for i in range(debut,fin):
+                zombie=lines[i].split("/")
+                Lz.append((float(zombie[0]),float(zombie[1])))
+            debut,fin=fin+1,fin+1+int(lines[fin])
+            for i in range(debut,fin):
+                sound=lines[i].split("/")
+                self.genSound(int(sound[0]),int(sound[1]),int(sound[2]))
+            self.plot_humain(Lh)
+            self.plot_zombie(Lz)
+            print("COUCOU")
+            if t<len(turns)-1:
+                self.after(1000,lambda: go(t+1))
+        go(0)
 
 E=Visualisator()
 E.focus_force()
