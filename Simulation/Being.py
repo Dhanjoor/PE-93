@@ -140,7 +140,7 @@ class Human(Being):
     def zombification(self):
         time.sleep(z_incubation_time*dt)                #waiting for the human to turn into a zombie
         self.Master.Humans.remove(self)              #removing the entity from class human
-        self.Master.Zombies.append(Zombie(self.Master,self.position,0))             #creating a new zombie
+        self.Master.Zombies.append(Zombie(self.Master,self.position))             #creating a new zombie
 
     def fight(self):
         genSound(self.cell[0],self.cell[1],Bruit)
