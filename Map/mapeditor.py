@@ -36,9 +36,9 @@ class Map_editor(Tk):
 		Tk.__init__(self)
 
 		# Data
-		self.x_size=80    # In cells
-		self.y_size=40    # In cells
-		self.ppc=15         # pixel per cell
+		self.x_size=15    # In cells
+		self.y_size=10    # In cells
+		self.ppc=int(min(self.winfo_screenwidth()/self.y_size,self.winfo_screenheight()/self.x_size))
 		self.onclic='w'    # w : wall, wl : line of wall, b : building, f : food, r : rest 
 		self.nclic = 1     # first or second clic for a new wall of line
 		self.firstcase = (0,0)     # first clic for a wall of line
@@ -48,7 +48,7 @@ class Map_editor(Tk):
 		# Each cell is [x,y,z] where y is noise level and z is wall/not wall
 
 		#Canvas
-		self.canvas = Canvas(self,width=self.x_size*self.ppc,height=self.y_size*self.ppc,bg='white')
+		self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
 		self.canvas.grid(row=0,column=0,rowspan=10)
 
 		#Save/Open
@@ -93,31 +93,30 @@ class Map_editor(Tk):
 
 	def clic(self,event):
 		nx,ny=event.x//self.ppc,event.y//self.ppc
-		print(self.onclic)
 		if self.onclic == 'w':
-			self.add_wall(nx,ny)
+			self.add_wall(ny,nx)
 		elif self.onclic == 'wl':
 			if self.nclic == 1:
-				self.firstcase = (nx,ny)
+				self.firstcase = (ny,nx)
 				self.nclic+=1
 			else:
-				self.add_line(self.firstcase[0],self.firstcase[1],nx,ny)
+				self.add_line(self.firstcase[0],self.firstcase[1],ny,nx)
 				self.nclic-=1
 		elif self.onclic == 'b':
 			if self.nclic == 1:
-				self.firstcase = (nx,ny)
+				self.firstcase = (ny,nx)
 				self.nclic+=1
 			elif self.nclic == 2:
 				self.nclic +=1
-				self.add_build(self.firstcase[0],self.firstcase[1],nx,ny)
+				self.add_build(self.firstcase[0],self.firstcase[1],ny,nx)
 			else:
-				self.adddoor(nx,ny)
+				self.adddoor(ny,nx)
 		elif self.onclic == 'f':			# food zone on cilc
 			self.grid[nx][ny][2]=3
-			self.color(nx,ny,'yellow')
+			self.color(ny,nx,'yellow')
 		elif self.onclic == 'r':			# rest zone on cilc
 			self.grid[nx][ny][2]=4
-			self.color(nx,ny,'green')
+			self.color(ny,nx,'green')
 			
 	def rclic(self,event):
 		self.nclic = 1
@@ -154,7 +153,7 @@ class Map_editor(Tk):
 		self.batiments.append([nx1,ny1,nx2,ny2])
 
 	def color(self,nx,ny,color):
-		self.canvas.create_rectangle(nx*self.ppc,ny*self.ppc,(nx+1)*self.ppc-1,(ny+1)*self.ppc-1,fill=color,outline=color)
+		self.canvas.create_rectangle(ny*self.ppc,nx*self.ppc,(ny+1)*self.ppc-1,(nx+1)*self.ppc-1,fill=color,outline=color)
 
 	def finish(self):
 		filename='saves/'+self.filename_entry.get()
