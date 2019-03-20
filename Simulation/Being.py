@@ -98,7 +98,7 @@ class Zombie(Being):
 
     def death(self):
         self.Master.Zombies.remove(self)
-
+    
 class Human(Being):
     def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior):
         Being.__init__(self,Master,position,maxspeed,h_vision,h_hearing,strength,agility)
@@ -115,6 +115,18 @@ class Human(Being):
     def info(self):
         x,y=self.cell
         print("Race: Humain, case: x={}, y={}".format(x,y))
+    
+    def add_energy(self,e):
+        if self.energy+e<0:
+            self.energy=0
+        else:
+            self.energy=min(100,self.energy+e)
+            
+    def add_hunger(self,h):
+        if self.hunger+h<0:
+            self.hunger=0
+        else:
+            self.hunger=min(100,self.hunger+h)
     
     def set_group(self,new_group):
         if self.group !=None:
