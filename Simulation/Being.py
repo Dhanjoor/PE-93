@@ -1,4 +1,5 @@
 from Parameters import *
+import numpy as np
 
 class Being:
     def __init__(self,Master,position,maxspeed,vision,hearing,strength,agility):
