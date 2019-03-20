@@ -19,6 +19,7 @@ z_strength=1
 z_agility=1
 z_lifespan=5
 z_incubation_time=10
+z_maxspeed=1
 
 #Human parameters
 h_vision=1
