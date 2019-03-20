@@ -1,7 +1,7 @@
 from Parameters import *
 
 class Being:
-    def __init__(self,Master,position,speed,vision,hearing,strength,agility):
+    def __init__(self,Master,position,maxspeed,vision,hearing,strength,agility):
         self.Master=Master
         self.position=position      # (x,y) for position in pixels
         self.cell=(int(position[0]),int(position[1]))                  # The cell the being is in
@@ -11,6 +11,8 @@ class Being:
         self.strength=strength              #physical trait (don't change)
         self.agilty=agility                 #agility trait (don't change)
         self.stop=0                         #countdown when the entity stop moving
+        self.maxspeed=maxspeed              #maximal speed
+        self.speed=(0,0)
 
     def move(self,t):
         if self.stop==0:                                                            #verif that the entity can move
@@ -46,8 +48,8 @@ class Being:
         #pas pris en compte hearing et le son en (x,y) ici
 
 class Zombie(Being):
-    def __init__(self,Master,position,*z_speed):
-        Being.__init__(self,Master,position,z_speed,z_vision,z_hearing,z_strength,z_agility)
+    def __init__(self,Master,position):
+        Being.__init__(self,Master,position,z_maxspeed,z_vision,z_hearing,z_strength,z_agility)
         self.lifespan=z_lifespan
 
     def info(self):
@@ -64,8 +66,8 @@ class Zombie(Being):
         self.Master.Zombies.remove(self)
 
 class Human(Being):
-    def __init__(self,Master,position,speed,strength,agility,morality,coldblood,behavior,group):
-        Being.__init__(self,Master,position,speed,h_vision,h_hearing,strength,agility)
+    def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior,group):
+        Being.__init__(self,Master,position,maxspeed,h_vision,h_hearing,strength,agility)
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
@@ -92,7 +94,7 @@ class Human(Being):
     def zombification(self):
         time.sleep(z_incubation_time*dt)                #waiting for the human to turn into a zombie
         self.Master.Humans.remove(self)              #removing the entity from class human
-        self.MasterZombies.append(Zombie(self.Master,self.position,0))             #creating a new zombie
+        self.Master.Zombies.append(Zombie(self.Master,self.position,0))             #creating a new zombie
 
     def fight(self):
         Zstrength=0
@@ -105,10 +107,7 @@ class Human(Being):
         else:
             L=Z.Strength/(2*(Zstrength+self.strength))
         if self.strength/(Zstrength+self.strength)-L>=proba:         #zombie(s) stronger than human
-            if proba_zombie>=rd.random():           #2 cases: eaten or transformed
-                self.zombification()
-            else:
-                self.eaten()
+            self.zombification()
         elif self.strength/(Zstrength+self.strength)+L<=proba:        #human stronger than zombie(s)
             for Z in Zincell:
                 Z.death()
