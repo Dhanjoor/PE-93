@@ -100,7 +100,7 @@ class Zombie(Being):
         self.Master.Zombies.remove(self)
 
 class Human(Being):
-    def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior,group):
+    def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior):
         Being.__init__(self,Master,position,maxspeed,h_vision,h_hearing,strength,agility)
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
@@ -131,20 +131,28 @@ class Human(Being):
         self.Master.Zombies.append(Zombie(self.Master,self.position,0))             #creating a new zombie
 
     def fight(self):
-        Zstrength=0
         genSound(self.cell[0],self.cell[1],Bruit)
-        for Z in Zinrange:
+        Zstrength=0
+        Zbattle=[]
+        for Z in self.Z_proximity():
+            Zbattle.append(Z)
             Zstrength+=Z.stength
+        Hstrength=0
+        Hbattle=[]
+        for H in self.H_proximity():
+            if H.group==self.group or H.morality==hero:
+                Hbattle.append(H)
+                Hstrength+=H.strength
         proba=rd.random()                                          #fight system: uniform law.
-        if self.strength/(Zstrength+self.strength)<0.5:
-            L=self.strength/(2*(Zstrength+self.strength))
+            L=Hstrength/(2*(Zstrength+Hstrength))
         else:
-            L=Z.Strength/(2*(Zstrength+self.strength))
-        if self.strength/(Zstrength+self.strength)-L>=proba:         #zombie(s) stronger than human
-            self.zombification()
-        elif self.strength/(Zstrength+self.strength)+L<=proba:        #human stronger than zombie(s)
-            for Z in Zincell:
+            L=Zstrength/(2*(Zstrength+Hstrength))
+        if Hstrength/(Zstrength+Hstrength)-L>=proba:         #zombie(s) stronger than human
+            for H in Hbattle:
+                H.zombification()
+        elif Hstrength/(Zstrength+Hstrength)+L<=proba:        #human stronger than zombie(s)
+            for Z in Zbattle:
                 Z.death()
         else:                                       #human and zombie(s) as strong: human manage to get away
-            for Z in Zincell:
+            for Z in Zbattle:
                 Z.stop=2
