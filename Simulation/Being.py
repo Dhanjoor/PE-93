@@ -63,6 +63,24 @@ class Being:
         return(u,v)
         # sound in (x,y) and hearing aren't used
 
+    def seeHuman(self):
+        x,y=self.cell
+        H=[]
+        for h in self.master.Humains:
+            if h.cell[0]-x==0 and h.cell[1]-y==0:
+                if ((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((h.cell[1]-y)/((h.cell[0]-x)+((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5)))<60:
+                    H.append(h)
+        return H
+                
+    def seeZombie(self):
+        x,y=self.cell
+        Z=[]
+        for z in self.master.Zombies:
+            if z.cell[0]-x==0 and z.cell[1]-y==0:
+                if ((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((z.cell[1]-y)/((z.cell[0]-x)+((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5)))<60:
+                    Z.append(z)
+        return Z
+    
 class Zombie(Being):
     def __init__(self,Master,position):
         Being.__init__(self,Master,position,z_maxspeed,z_vision,z_hearing,z_strength,z_agility)
