@@ -28,7 +28,7 @@ class Visualisator(Tk):
         self.canvas.bind('<Button-1>',self.clic)
 
     def load(self):
-        with open('saves/Map.txt',"r") as f:
+        with open('Map.txt',"r") as f:
             text=f.read()
         lines=text.split('\n')
         batis=lines[-1]
@@ -36,9 +36,9 @@ class Visualisator(Tk):
         self.grid=[lines[i].split(' ') for i in range(len(lines))]
         self.x_size=len(self.grid)
         self.y_size=len(self.grid[0])
-        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-20)/self.x_size))
+        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-150)/self.x_size))
         self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.timer=Label(self,width=self.ppc,text="COUCOU",font=("Arial",20))
+        self.timer=Label(self,width=self.ppc,text="Click to start",font=("Arial",20))
         self.canvas.config(width=self.ppc*self.y_size,height=self.ppc*self.x_size)
         self.timer.pack()
         self.canvas.pack()
@@ -104,7 +104,7 @@ class Visualisator(Tk):
             self.canvas.delete(oval)
         self.humains=[]
         for (x,y) in L:
-            px,py=int(self.ppc*x),int(self.ppc*y)
+            py,px=int(self.ppc*x),int(self.ppc*y)
             self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ba4a00'))
 
     def plot_zombie(self,L):
@@ -113,7 +113,7 @@ class Visualisator(Tk):
             self.canvas.delete(oval)
         self.zombies=[]
         for (x,y) in L:
-            px,py=int(self.ppc*x),int(self.ppc*y)
+            py,px=int(self.ppc*x),int(self.ppc*y)
             self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#4a235a'))
 
     def clic(self,event):
@@ -121,13 +121,13 @@ class Visualisator(Tk):
         self.run()
 
     def run(self):
-        with open("Sauvegarde.txt","r") as f:
+        with open("Save.txt","r") as f:
             text=f.read()
         turns=text.split("***\n")
         def go(t):
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
-            self.timer.config(text=str(t))
+            self.timer.config(text="Tour n° "+str(t+1))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")
@@ -142,7 +142,6 @@ class Visualisator(Tk):
                 self.genSound(int(sound[0]),int(sound[1]),int(sound[2]))
             self.plot_humain(Lh)
             self.plot_zombie(Lz)
-            print("COUCOU")
             if t<len(turns)-1:
                 self.after(1000,lambda: go(t+1))
         go(0)
