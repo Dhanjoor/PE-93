@@ -38,7 +38,7 @@ class Map_editor(Tk):
 		# Data
 		self.x_size=15    # In cells
 		self.y_size=30    # In cells
-		self.ppc=int(min(self.winfo_screenwidth()/self.y_size-7,self.winfo_screenheight()/self.x_size))
+		self.ppc=int(min((self.winfo_screenwidth()-300)/self.y_size,self.winfo_screenheight()/self.x_size))
 		self.onclic='w'    # w : wall, wl : line of wall, b : building, f : food, r : rest 
 		self.nclic = 1     # first or second clic for a new wall of line
 		self.firstcase = (0,0)     # first clic for a wall of line

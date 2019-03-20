@@ -14,6 +14,7 @@ class Visualisator(Tk):
         self.firstcase = (0,0)     # first clic for a wall of line
         self.grid=[]
         self.canvas=[]
+        self.timer = 0
         self.nbati=1
         self.batiments=[]
         self.humains=[]
@@ -35,10 +36,12 @@ class Visualisator(Tk):
         self.grid=[lines[i].split(' ') for i in range(len(lines))]
         self.x_size=len(self.grid)
         self.y_size=len(self.grid[0])
-        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,self.winfo_screenheight()/self.x_size))
+        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-20)/self.x_size))
         self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.canvas.grid(row=0,column=0,columnspan=4)
+        self.timer=Label(self,width=self.ppc,text="COUCOU",font=("Arial",20))
         self.canvas.config(width=self.ppc*self.y_size,height=self.ppc*self.x_size)
+        self.timer.pack()
+        self.canvas.pack()
         self.nbati=2
         for i in range (self.x_size):
             for j in range (self.y_size):
@@ -124,7 +127,7 @@ class Visualisator(Tk):
         def go(t):
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
-            print(lines)
+            self.timer.config(text=str(t))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")
