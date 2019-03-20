@@ -55,8 +55,7 @@ class Zombie(Being):
         print("Race: Zombie, case: x={}, y={}".format(x,y))
 
     def action(self):
-
-
+        
         self.lifespan-=1
         if self.lifespan==0:
             self.death()
@@ -75,14 +74,17 @@ class Human(Being):
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
         self.knowing=False                  #knowing the zombie invasion
-        self.group=group                #define the social group of the human
+        self.group=None                #define the social group of the human
 
     def info(self):
         x,y=self.cell
         print("Race: Humain, case: x={}, y={}".format(x,y))
     
     def set_group(self,new_group):
+        if self.group !=None:
+            self.Master.Groups[self.group].remove(self)
         self.group=new_group
+        self.Master.Groups[new_group].append(self)
     
     def action(self):
         pass
