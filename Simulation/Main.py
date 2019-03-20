@@ -1,6 +1,7 @@
 from Parameters import *
 from Cell import *
 from CreateBeing import *
+from random import randint
 
 class Master:
     def __init__(self):
@@ -32,8 +33,8 @@ for _ in range(nHumans):
 
 #Simulation
 t=1
-events=[(2,2,6)]
-with open("Save.txt","w") as f:
+events=[(randint(0, xSize-1),randint(0,ySize-1),5)]
+with open("Map/Save.txt","w") as f:
     pass
 
 while t<=Tsimulation:
@@ -51,7 +52,9 @@ while t<=Tsimulation:
     print()
 
     #Sauvegarde
-    with open("Save.txt","a") as f:
+    with open("Map/Save.txt","a") as f:
+        if t>1:
+            f.write("***\n")
         f.write(str(len(Master.Humans)))
         f.write("\n")
         for h in Master.Humans:
@@ -71,6 +74,5 @@ while t<=Tsimulation:
         for x,y,M in events:
             f.write("{}/{}/{}".format(x,y,M))
             f.write("\n")
-        f.write("***\n")
     t+=dt
     events=[]
