@@ -22,23 +22,23 @@ class Being:
             self.cell=self.master.which_cell(self.position[0],self.position[1])
         else:                                                                       #decrease by one the countdown
             self.stop-=1
-    
+
     def Z_proximity(self):
         n,m=self.cell
         L=[]
         for Z in self.Master.Zombies:
-            if abs(Z.cell[0]-n)+abs(Z.cell[1]-m)<=D_interaction
-            L.append(Z)
+            if abs(Z.cell[0]-n)+abs(Z.cell[1]-m)<=D_interaction:
+                L.append(Z)
         return L
-    
+
     def H_proximity(self):
         n,m=self.cell
         L=[]
         for H in self.Master.Humans:
-            if abs(H.cell[0]-n)+abs(H.cell[1]-m)<=D_interaction
-            L.append(H)
+            if abs(H.cell[0]-n)+abs(H.cell[1]-m)<=D_interaction:
+                L.append(H)
         return L
-    
+
     def detectSound(self):
         x,y=self.cell
         u,v=0,0
@@ -72,7 +72,7 @@ class Being:
                 if ((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((h.cell[1]-y)/((h.cell[0]-x)+((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5)))<60:
                     H.append(h)
         return H
-                
+
     def seeZombie(self):
         x,y=self.cell
         Z=[]
@@ -81,7 +81,7 @@ class Being:
                 if ((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((z.cell[1]-y)/((z.cell[0]-x)+((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5)))<60:
                     Z.append(z)
         return Z
-    
+
 class Zombie(Being):
     def __init__(self,Master,position):
         Being.__init__(self,Master,position,z_maxspeed,z_vision,z_hearing,z_strength,z_agility)
@@ -92,14 +92,14 @@ class Zombie(Being):
         print("Race: Zombie, case: x={}, y={}".format(x,y))
 
     def action(self):
-        
+
         self.lifespan-=1
         if self.lifespan==0:
             self.death()
 
     def death(self):
         self.Master.Zombies.remove(self)
-    
+
 class Human(Being):
     def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior):
         Being.__init__(self,Master,position,maxspeed,h_vision,h_hearing,strength,agility)
@@ -116,25 +116,25 @@ class Human(Being):
     def info(self):
         x,y=self.cell
         print("Race: Humain, case: x={}, y={}".format(x,y))
-    
+
     def add_energy(self,e):
         if self.energy+e<0:
             self.energy=0
         else:
             self.energy=min(100,self.energy+e)
-            
+
     def add_hunger(self,h):
         if self.hunger+h<0:
             self.hunger=0
         else:
             self.hunger=min(100,self.hunger+h)
-    
+
     def set_group(self,new_group):
         if self.group !=None:
             self.Master.Groups[self.group].remove(self)
         self.group=new_group
         self.Master.Groups[new_group].append(self)
-    
+
     def action(self):
         pass
 
@@ -155,11 +155,10 @@ class Human(Being):
         for H in self.H_proximity():
             if H.group==self.group or H.morality==hero:
                 Hbattle.append(H)
-                Hstrength+=H.strength
-        proba=rd.random()                                          #fight system: uniform law.
-            L=Hstrength/(2*(Zstrength+Hstrength))
-        else:
-            L=Zstrength/(2*(Zstrength+Hstrength))
+                Hstrength+=H.strength                                          #fight system: uniform law.
+                L=Hstrength/(2*(Zstrength+Hstrength))
+            else:
+                L=Zstrength/(2*(Zstrength+Hstrength))
         if Hstrength/(Zstrength+Hstrength)-L>=proba:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()
