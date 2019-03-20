@@ -1,0 +1,22 @@
+Reference for save.txt
+each turn is separated by "***"
+
+number of humans (integer)
+on the 'number of humans' following lines:
+the position, speed and characteristics of each human separated by a "/" : x/y/speedr/speedtheta/hunger/energy/stress/stamina
+number of zombies (integer)
+on the 'number of zombies' following lines:
+the position, speed, lifespan of each zombie separated by a "/" : x/y/speedr/speedtheta/lifespan
+number of events (integer)
+on the 'number of events' following lines:
+the position and sound intensity of each event: x/y/volume
+"***" to end the turn
+the next turn
+
+lines[0]=1
+lines[2]=1
+
+0 : 1= n humans
+1 : human 1
+2 : 1= n zombies
+3 : zombie 1

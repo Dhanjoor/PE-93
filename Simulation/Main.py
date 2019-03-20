@@ -7,11 +7,10 @@ class Master:
         self.Map=[]
         self.Humans=[]
         self.Zombies=[]
-        self.Groups=[]
 
 Master=Master()
 
-""" Map creation """
+#Map creation
 Master.Map=[[Cell(i,j) for j in range(ySize)] for i in range(xSize)]
 Buildings=[]
 
@@ -31,8 +30,12 @@ for _ in range(nZombies):
 for _ in range(nHumans):
     Master.Humans.append(create_human(Master))
 
-""" Simulation """
+#Simulation
 t=1
+events=[(2,2,6)]
+with open("Save.txt","w") as f:
+    pass
+
 while t<=Tsimulation:
     print("======== Tour {} ========".format(t))
     for nh in range(len(Master.Humans)-1, -1, -1):
@@ -45,5 +48,29 @@ while t<=Tsimulation:
         z.action()
         z.info()
         print(z.lifespan)
-    t+=dt
     print()
+
+    #Sauvegarde
+    with open("Save.txt","a") as f:
+        f.write(str(len(Master.Humans)))
+        f.write("\n")
+        for h in Master.Humans:
+            x,y=h.position
+            vr,vtheta=h.speed
+            f.write("{}/{}/{}/{}/{}/{}/{}/{}".format(x,y,vr,vtheta,h.hunger,h.energy,h.stress,h.stamina))
+            f.write("\n")
+        f.write(str(len(Master.Zombies)))
+        f.write("\n")
+        for z in Master.Zombies:
+            x,y=z.position
+            vr,vtheta=z.speed
+            f.write("{}/{}/{}/{}/{}".format(x,y,vr,vtheta,z.lifespan))
+            f.write("\n")
+        f.write(str(len(events)))
+        f.write("\n")
+        for x,y,M in events:
+            f.write("{}/{}/{}".format(x,y,M))
+            f.write("\n")
+        f.write("***\n")
+    t+=dt
+    events=[]
