@@ -55,15 +55,15 @@ while t<=Tsimulation:
         f.write(str(len(Master.Humans)))
         f.write("\n")
         for h in Master.Humans:
-            x,y=h.position
-            vr,vtheta=h.speed
+            x,y=round(h.position[0],2), round(h.position[1],2)
+            vr,vtheta=round(h.speed[0],2), round(h.speed[1],2)
             f.write("{}/{}/{}/{}/{}/{}/{}/{}".format(x,y,vr,vtheta,h.hunger,h.energy,h.stress,h.stamina))
             f.write("\n")
         f.write(str(len(Master.Zombies)))
         f.write("\n")
         for z in Master.Zombies:
-            x,y=z.position
-            vr,vtheta=z.speed
+            x,y=round(z.position[0],2), round(z.position[1],2)
+            vr,vtheta=round(z.speed[0],2), round(z.speed[1],2)
             f.write("{}/{}/{}/{}/{}".format(x,y,vr,vtheta,z.lifespan))
             f.write("\n")
         f.write(str(len(events)))
