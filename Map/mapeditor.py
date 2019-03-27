@@ -66,6 +66,7 @@ class Map_editor(Tk):
         self.onclicbuild_button = Button(self.frame3,text='Batiment au clic',command=lambda: self.setclic('b'))
         self.onclicfood_button = Button(self.frame3,text='Zone food au clic',command=lambda: self.setclic('f'))
         self.onclicrest_button = Button(self.frame3,text='Zone repos au clic',command=lambda: self.setclic('r'))
+        self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
 
         #Layout
         self.frame1.grid(row=0,column=1)
@@ -85,7 +86,8 @@ class Map_editor(Tk):
         self.onclicbuild_button.grid(row=4,column=0)
         self.onclicfood_button.grid(row=5,column=0)
         self.onclicrest_button.grid(row=6,column=0)
-
+        self.onclicclear_button.grid(row=7,column=0)
+        
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
         self.canvas.bind('<Button-3>',self.rclic)
@@ -118,6 +120,9 @@ class Map_editor(Tk):
         elif self.onclic == 'r':            # rest zone on cilc
             self.grid[ny][nx][2]=4
             self.color(ny,nx,'green')
+        elif self.onclic == 'clb':
+            self.grid[ny][nx][2]=0
+            self.color(ny,nx,'white')
             
     def rclic(self,event):
         self.nclic = 1
@@ -224,6 +229,9 @@ class Map_editor(Tk):
         elif txt == 'f':
             self.onclic = 'f'
             self.onclic_label.config(text='Cliquer pour ajouter \n une case nourriture')
+        elif txt == 'clb':
+            self.onclic = 'clb'
+            self.onclic_label.config(text='Cliquer pour nettoyer un point')
         if txt == 'r':
             self.onclic = 'r'
             self.onclic_label.config(text='Cliquer pour ajouter \n une zone de repos')
