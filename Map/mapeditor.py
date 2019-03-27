@@ -36,8 +36,8 @@ class Map_editor(Tk):
         Tk.__init__(self)
 
         # Data
-        self.x_size=40    # In cells
-        self.y_size=80    # In cells
+        self.x_size=10    # In cells
+        self.y_size=10    # In cells
         self.ppc=int(min((self.winfo_screenwidth()-300)/self.y_size,self.winfo_screenheight()/self.x_size))
         self.onclic='w'    # w : wall, wl : line of wall, b : building, f : food, r : rest 
         self.nclic = 1     # first or second clic for a new wall of line
@@ -169,7 +169,7 @@ class Map_editor(Tk):
                 for i in range(len(g)):
                     for j in range(len(g[0])-1):
                         f.write(str(g[i][j][0])+'/'+str(g[i][j][1])+'/'+str(g[i][j][2])+' ')
-                    f.write(str(g[i][j][0])+'/'+str(g[i][j][1])+'/'+str(g[i][j][2])+'\n')
+                    f.write(str(g[i][len(g[0])-1][0])+'/'+str(g[i][len(g[0])-1][1])+'/'+str(g[i][len(g[0])-1][2])+'\n')
                 for i in range (len(self.batiments)):
                     for j in range (len(self.batiments[i])-1):
                         f.write(str(self.batiments[i][j])+'/')
