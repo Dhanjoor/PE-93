@@ -29,7 +29,7 @@ class Visualisator(Tk):
         self.canvas.bind('<Button-1>',self.clic)
 
     def load(self):
-        with open('saves/Map.txt',"r") as f:
+        with open('Map/Map.txt',"r") as f:
             text=f.read()
         lines=text.split('\n')
         batis=lines[-1]
@@ -126,7 +126,7 @@ class Visualisator(Tk):
         self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),5)
 
     def run(self):
-        with open("Sauvegarde.txt","r") as f:
+        with open("Journal/Sauvegarde.txt","r") as f:
             text=f.read()
         turns=text.split("***\n")
         def go(t):

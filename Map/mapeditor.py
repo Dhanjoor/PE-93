@@ -162,7 +162,7 @@ class Map_editor(Tk):
         self.canvas.create_rectangle(ny*self.ppc,nx*self.ppc,(ny+1)*self.ppc-1,(nx+1)*self.ppc-1,fill=color,outline=color)
 
     def finish(self):
-        filename='saves/'+self.filename_entry.get()
+        filename='Map/'+self.filename_entry.get()
         if filename != '':
             g=self.grid
             with open(filename+'.txt',"w") as f:
@@ -178,7 +178,7 @@ class Map_editor(Tk):
                         f.write(' ')
 
     def load(self):
-        filename='saves/'+self.filename_entry.get()
+        filename='Map/'+self.filename_entry.get()
         try:
             with open(filename+'.txt',"r") as f:
                 text=f.read()
