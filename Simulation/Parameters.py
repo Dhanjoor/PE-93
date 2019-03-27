@@ -6,33 +6,31 @@ with open("Map/"+mapTxt, "r") as f:
 
 Tsimulation=10
 dt=1
-attenuation_porte=3
+attenuationPorte=3
 
 nZombies=3
 nHumans=3
+dInteraction=3
 
 #Zombie parameters
-z_speed=1
-z_vision=1
-z_hearing=1
-z_strength=1
-z_agility=1
-z_lifespan=5
-z_incubation_time=10
-z_maxspeed=1
+zSpeed=1
+zVision=1
+zHearing=1
+zStrength=1
+zAgility=1
+zLifespan=5
+zIncubationTime=10
+zMaxspeed=1
 
 #Human parameters
-h_vision=1
-h_hearing=1
+hVision=1
+hHearing=1
 
-weak, casual, strong=(1,1,1), (2,2,2), (3,3,3) #speed, strength, agility
+weak, casual, strong=(1,1,1), (2,2,2), (3,3,3) #maxspeed, strength, agility
 pAbilities=[1/4, 1/2, 1/4] #proba for general stats
 
-evil, neutral, hero=0,1,2
-pMoralities=[1/4, 1/2, 1/4] #proba
+pMoralities=[1/4, 1/2, 1/4] #proba of being "evil","neutral","hero"
 
-flee,hide,fight=0,1,2
-pBehaviors=[1/3, 1/3, 1/3]  #proba
+pBehaviors=[1/3, 1/3, 1/3]  #proba of being using mostly "flee","hide","fight"
 
-zen,stable,stressed=0,1,2
-pStress=[1/3, 1/3, 1/3] #proba
+pStress=[1/3, 1/3, 1/3] #proba of being "zen","stable","stressed"
