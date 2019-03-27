@@ -23,6 +23,7 @@ class Visualisator(Tk):
 
         # Load map
         self.load()
+        self.plotPath([(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (7, 9), (6, 9), (5, 9), (4, 9), (3, 9), (2, 9), (2, 8), (2, 7), (3, 7), (4, 7), (5, 7), (5, 6), (5, 5)])
         
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
@@ -99,7 +100,7 @@ class Visualisator(Tk):
             txt='0'+txt
         return('#ff'+txt+txt)
 
-    def plot_humain(self,L):
+    def plotHumain(self,L):
         d=int(self.ppc/3.5)
         for oval in self.humains:
             self.canvas.delete(oval)
@@ -108,7 +109,7 @@ class Visualisator(Tk):
             px,py=int(self.ppc*x),int(self.ppc*y)
             self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ba4a00'))
 
-    def plot_zombie(self,L):
+    def plotZombie(self,L):
         d=int(self.ppc/3.5)
         for oval in self.zombies:
             self.canvas.delete(oval)
@@ -117,7 +118,7 @@ class Visualisator(Tk):
             px,py=int(self.ppc*x),int(self.ppc*y)
             self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#4a235a'))
                                                         
-    def plot_path(self,path):
+    def plotPath(self,path):
         for x,y in path:
             self.color(x,y,"#aff")
 
@@ -144,8 +145,8 @@ class Visualisator(Tk):
             for i in range(debut,fin):
                 sound=lines[i].split("/")
                 self.genSound(int(sound[0]),int(sound[1]),int(sound[2]))
-            self.plot_humain(Lh)
-            self.plot_zombie(Lz)
+            self.plotHumain(Lh)
+            self.plotZombie(Lz)
             if t<len(turns)-1:
                 self.after(1000,lambda: go(t+1))
         go(0)
