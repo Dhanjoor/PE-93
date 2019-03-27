@@ -1,12 +1,24 @@
 from Parameters import *
 import numpy as np
+from math import atan
+
+def nearestIndex(L,x,y):
+    cible=-1
+    dMin=xSize+ySize
+    for i in range(len(L)):
+        xh,yh=L[i].cell
+        d=((x-xh)**2+(y-yh)**2)**0.5
+        if d<dMin:
+            cible=i
+            dMin=d
+    return(cible)
 
 class Being:
     def __init__(self,Master,position,maxspeed,vision,hearing,strength,agility):
         self.Master=Master
         self.position=position      # (x,y) for position in pixels
-        self.cell=(int(position[0]),int(position[1]))                  # The cell the being is in
-        self.speed=(0,0)                # (vr,vteta) vr is the norm and vteta the angle of the speed
+        self.cell=[int(position[0]),int(position[1])]                  # The cell the being is in
+        self.speed=[0,0]                # (vr,vteta) vr is the norm and vteta the angle of the speed
         self.vision=vision              #vision distance
         self.hearing=hearing                    #hearing threshold
         self.strength=strength              #physical trait (don't change)
@@ -14,27 +26,28 @@ class Being:
         self.stop=0                         #countdown when the entity stop moving
         self.maxspeed=maxspeed              #maximal speed
 
-    def move(self,t):
+    def move(self,t,volume):
         if self.stop==0:                                                            #verif that the entity can move
-            self.position[0]+=t*self.speed[0]*np.cos(self.speed[1])                  #new position of the being
-            self.position[1]+=t*self.speed[0]*np.sin(self.speed[1])
-            self.cell=self.master.which_cell(self.position[0],self.position[1])
+            self.position[0]+=t*self.speed[0]                 #new position of the being
+            self.position[1]+=t*self.speed[1]
+            self.cell=(int(self.position[0]),int(self.position[1]))
+            self.Master.genSound(self.cell[0], self.cell[1], volume)
         else:                                                                       #decrease by one the countdown
             self.stop-=1
 
-    def Z_proximity(self):
+    def zProximity(self):
         n,m=self.cell
         L=[]
         for Z in self.Master.Zombies:
-            if abs(Z.cell[0]-n)+abs(Z.cell[1]-m)<=D_interaction:
+            if abs(Z.cell[0]-n)+abs(Z.cell[1]-m)<=dInteraction:
                 L.append(Z)
         return L
 
-    def H_proximity(self):
+    def hProximity(self):
         n,m=self.cell
         L=[]
         for H in self.Master.Humans:
-            if abs(H.cell[0]-n)+abs(H.cell[1]-m)<=D_interaction:
+            if abs(H.cell[0]-n)+abs(H.cell[1]-m)<=dInteraction:
                 L.append(H)
         return L
 
@@ -45,63 +58,64 @@ class Being:
             u-=self.Master.Map[x-1][y].sound
             if y>0:
                 u-=self.Master.Map[x-1][y-1].sound/2**0.5
-            if y<ySize:
+            if y<ySize-1:
                 u-=self.Master.Map[x-1][y+1].sound/2**0.5
 
         if x<xSize-1:
             u+=self.Master.Map[x+1][y].sound
             if y>0:
                 u-=self.Master.Map[x+1][y-1].sound/2**0.5
-            if y<ySize:
+            if y<ySize-1:
                 u-=self.Master.Map[x+1][y+1].sound/2**0.5
 
         if y>0:
             v-=self.Master.Map[x][y-1].sound
-        if y<ySize:
+        if y<ySize-1:
             v+=self.Master.Map[x][y+1].sound
 
         return(u,v)
         # sound in (x,y) and hearing aren't used
 
-    def seeHuman(self):
-        x,y=self.cell
-        H=[]
-        for h in self.master.Humains:
-            if h.cell[0]-x==0 and h.cell[1]-y==0:
-                if ((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((h.cell[1]-y)/((h.cell[0]-x)+((h.cell[0]-x)**2+(h.cell[1]-y)**2)**0.5)))<60:
-                    H.append(h)
-        return H
-
-    def seeZombie(self):
-        x,y=self.cell
-        Z=[]
-        for z in self.master.Zombies:
-            if z.cell[0]-x==0 and z.cell[1]-y==0:
-                if ((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5<self.vision and abs(2*atan((z.cell[1]-y)/((z.cell[0]-x)+((z.cell[0]-x)**2+(z.cell[1]-y)**2)**0.5)))<60:
-                    Z.append(z)
-        return Z
-
 class Zombie(Being):
     def __init__(self,Master,position):
-        Being.__init__(self,Master,position,z_maxspeed,z_vision,z_hearing,z_strength,z_agility)
-        self.lifespan=z_lifespan
+        Being.__init__(self,Master,position,zMaxspeed,zVision,zHearing,zStrength,zAgility)
+        self.lifespan=zLifespan
 
     def info(self):
         x,y=self.cell
         print("Race: Zombie, case: x={}, y={}".format(x,y))
 
     def action(self):
+        x,y=self.cell
+        hVision=self.hProximity()
 
-        self.lifespan-=1
-        if self.lifespan==0:
-            self.death()
+        cible=nearestIndex(hVision,x,y)
+        if cible!=-1:
+            xh,yh=hVision[cible].cell
+            self.speed=[xh-x,yh-y]
+            self.move(dt,1)
+            return("human in sight")
+
+        xSound, ySound=self.detectSound()
+        if (xSound**2+ySound**2)**0.5>self.hearing:
+            self.speed=[xSound, ySound]
+            self.move(dt,1)
+            return("sound heard")
+
+        zVision=self.zProximity()
+        cible=nearestIndex(zVision,x,y)
+        if cible!=-1:
+            xz,yz=zVision[cible].cell
+            self.speed=[xz-x,yz-y]
+            self.move(dt,1)
+            return("zombie in sight")
 
     def death(self):
         self.Master.Zombies.remove(self)
 
 class Human(Being):
     def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior):
-        Being.__init__(self,Master,position,maxspeed,h_vision,h_hearing,strength,agility)
+        Being.__init__(self,Master,position,maxspeed,hVision,hHearing,strength,agility)
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
@@ -116,29 +130,29 @@ class Human(Being):
         x,y=self.cell
         print("Race: Humain, case: x={}, y={}".format(x,y))
 
-    def add_energy(self,e):
+    def addEnergy(self,e):
         if self.energy+e<0:
             self.energy=0
         else:
             self.energy=min(100,self.energy+e)
 
-    def add_hunger(self,h):
+    def addHunger(self,h):
         if self.hunger+h<0:
             self.hunger=0
         else:
             self.hunger=min(100,self.hunger+h)
 
-    def set_group(self,new_group):
+    def setGroup(self,newGroup):
         if self.group !=None:
             self.Master.Groups[self.group].remove(self)
-        self.group=new_group
-        self.Master.Groups[new_group].append(self)
+        self.group=newGroup
+        self.Master.Groups[newGroup].append(self)
 
     def action(self):
         pass
 
     def zombification(self):
-        time.sleep(z_incubation_time*dt)                #waiting for the human to turn into a zombie
+        time.sleep(zIncubationTime*dt)                #waiting for the human to turn into a zombie
         self.Master.Humans.remove(self)              #removing the entity from class human
         self.Master.Zombies.append(Zombie(self.Master,self.position))             #creating a new zombie
 
@@ -146,13 +160,13 @@ class Human(Being):
         genSound(self.cell[0],self.cell[1],Bruit)
         Zstrength=0
         Zbattle=[]
-        for Z in self.Z_proximity():
+        for Z in self.zProximity():
             Zbattle.append(Z)
             Zstrength+=Z.stength
         Hstrength=0
         Hbattle=[]
-        for H in self.H_proximity():
-            if H.group==self.group or H.morality==hero:
+        for H in self.hProximity():
+            if H.group==self.group or H.morality=="hero":
                 Hbattle.append(H)
                 Hstrength+=H.strength                                          #fight system: uniform law.
                 L=Hstrength/(2*(Zstrength+Hstrength))
