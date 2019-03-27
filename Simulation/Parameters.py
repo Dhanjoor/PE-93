@@ -1,5 +1,6 @@
-mapTxt="Map.txt"
-with open("Map/"+mapTxt, "r") as f:
+mapTxt="Map/Map.txt"
+saveTxt="Map/Save.txt"
+with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
     xSize=len(lines)-1 #last line shows the buildings
     ySize=len(list(lines[0].split()))

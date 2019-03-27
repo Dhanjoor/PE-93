@@ -45,7 +45,7 @@ Master=Master()
 Master.Map=[[Cell(i,j) for j in range(ySize)] for i in range(xSize)]
 Buildings=[]
 
-with open("Map/"+mapTxt, "r") as f:
+with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
 for i in range(xSize):
     line=list(lines[i].split())
@@ -62,9 +62,9 @@ for _ in range(nHumans):
     Master.Humans.append(createHuman(Master))
 
 #Simulation
-t=0
+t=9
 events=[(randint(0, xSize-1),randint(0,ySize-1),5)]
-with open("Map/Save.txt","w") as f:
+with open(saveTxt,"w") as f:
     pass
 
 while t<=Tsimulation:
@@ -95,7 +95,7 @@ while t<=Tsimulation:
             Master.Zombies[nz].lifespan-=1
 
     #Sauvegarde
-    with open("Map/Save.txt","a") as f:
+    with open(saveTxt, "a") as f:
         if t>1:
             f.write("***\n")
         f.write(str(len(Master.Humans)))
