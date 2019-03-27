@@ -13,7 +13,7 @@ class Visualisator(Tk):
         self.nclic = 1     # first or second clic for a new wall of line
         self.firstcase = (0,0)     # first clic for a wall of line
         self.grid=[]
-        self.canvas=[]
+        self.canvas=0
         self.timer = 0
         self.nbati=1
         self.batiments=[]
@@ -23,12 +23,12 @@ class Visualisator(Tk):
 
         # Load map
         self.load()
-
+        
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
 
     def load(self):
-        with open('Map.txt',"r") as f:
+        with open('saves/Map.txt',"r") as f:
             text=f.read()
         lines=text.split('\n')
         batis=lines[-1]
@@ -36,12 +36,13 @@ class Visualisator(Tk):
         self.grid=[lines[i].split(' ') for i in range(len(lines))]
         self.x_size=len(self.grid)
         self.y_size=len(self.grid[0])
-        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-150)/self.x_size))
+        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-300)/self.x_size))
         self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.timer=Label(self,width=self.ppc,text="Click to start",font=("Arial",20))
+        self.timer=Label(self,width=self.ppc,text="COUCOU",font=("Arial",20))
         self.canvas.config(width=self.ppc*self.y_size,height=self.ppc*self.x_size)
-        self.timer.pack()
-        self.canvas.pack()
+        self.timer.grid(column=0)
+        Button(self,text='launch',command=self.run).grid()
+        self.canvas.grid(column=0)
         self.nbati=2
         for i in range (self.x_size):
             for j in range (self.y_size):
@@ -104,7 +105,7 @@ class Visualisator(Tk):
             self.canvas.delete(oval)
         self.humains=[]
         for (x,y) in L:
-            py,px=int(self.ppc*x),int(self.ppc*y)
+            px,py=int(self.ppc*x),int(self.ppc*y)
             self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ba4a00'))
 
     def plot_zombie(self,L):
@@ -113,21 +114,24 @@ class Visualisator(Tk):
             self.canvas.delete(oval)
         self.zombies=[]
         for (x,y) in L:
-            py,px=int(self.ppc*x),int(self.ppc*y)
+            px,py=int(self.ppc*x),int(self.ppc*y)
             self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#4a235a'))
+                                                        
+    def plot_path(self,path):
+        for x,y in path:
+            self.color(x,y,"#aff")
 
     def clic(self,event):
-        #self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),8)
-        self.run()
+        self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),5)
 
     def run(self):
-        with open("Save.txt","r") as f:
+        with open("Sauvegarde.txt","r") as f:
             text=f.read()
         turns=text.split("***\n")
         def go(t):
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
-            self.timer.config(text="Tour n° "+str(t+1))
+            self.timer.config(text=str(t))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")
