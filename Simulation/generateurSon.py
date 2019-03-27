@@ -22,7 +22,7 @@ def genSound(x0,y0,volume):
                 value=M-(dx**2+dy**2)**(1/2)
                 if x>=0 and x<xSize and y>=0 and y<ySize and carte[x][y].content!=2 and not(visited[x-x0+volume][y-y0+volume]) and value>0.5:
                     if carte[x][y].content==1:
-                        value-=attenuation_porte
+                        value-=attenuationPorte
                         if value<=0.5:
                             continue
                     carte[x][y].sound+=round(value)
@@ -46,12 +46,13 @@ if __name__=="__main__":
                 return(".")
             return(str(self.sound))
 
-    attenuation_porte=2
+    attenuationPorte=2
     xSize,ySize=10,10
     carte=[[Case(0) for _ in range(ySize)] for _ in range(xSize)]
     for k in range(4):
         carte[k][2].content=2
     carte[1][2].content=1
+    carte[4][1].content=2
 
     genSound(0,0,6)
     genSound(8,8,2)
