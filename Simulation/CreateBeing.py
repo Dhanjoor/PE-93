@@ -3,9 +3,9 @@ from Parameters import *
 from Being import *
 
 def createZombie(Master):
-    x,y=randint(0, xSize-1), randint(0, ySize-1)
+    x,y=randint(2, xSize-3), randint(2, ySize-3)
     while Master.Map[x][y].content!=0 or Master.Map[x][y].idBuilding!=0:
-        x,y=randint(0, xSize-1), randint(0, ySize-1)
+        x,y=randint(2, xSize-3), randint(2, ySize-3)
     x,y=x+random(),y+random()
 
     return(Zombie(Master, [x,y]))
@@ -43,9 +43,9 @@ def createHuman(Master):
     else:
         coldblood="stressed"
 
-    x,y=randint(0, xSize-1), randint(0, ySize-1)
+    x,y=randint(2, xSize-3), randint(2, ySize-3)
     while Master.Map[x][y].content!=0:
-        x,y=randint(0, xSize-1), randint(0, ySize-1)
+        x,y=randint(2, xSize-3), randint(2, ySize-3)
     x,y=x+random(),y+random()
 
     return(Human(Master, [x,y],ability[0], ability[1], ability[2], coldblood, morality, behavior))

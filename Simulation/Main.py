@@ -8,9 +8,12 @@ class Master:
         self.Map=[]
         self.Humans=[]
         self.Zombies=[]
+        self.Buildings=[]
+        self.Events=[]
 
     def genSound(self,x0,y0,volume):
-        if x0<0 or x0>=xSize or y0<0 or y0>=ySize or self.Map[x0][y0].content==2:
+        self.Events.append((x0,y0,volume))
+        if x0<0 or x0>=xSize or y0<0 or y0>=ySize or self.Map[x0][y0].content==2 or volume==0:
             print("error")
             return()
 
@@ -43,7 +46,6 @@ Master=Master()
 
 #Map creation
 Master.Map=[[Cell(i,j) for j in range(ySize)] for i in range(xSize)]
-Buildings=[]
 
 with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
@@ -62,18 +64,13 @@ for _ in range(nHumans):
     Master.Humans.append(createHuman(Master))
 
 #Simulation
-t=9
-events=[(randint(0, xSize-1),randint(0,ySize-1),5)]
-with open(saveTxt,"w") as f:
+t=1
+with open(journalTxt,"w") as f:
     pass
 
 while t<=Tsimulation:
-    print("======== Tour {} ========".format(t))
 
-    for x in range(xSize):
-        for y in range(ySize):
-            if Master.Map[x][y].sound>0:
-                Master.Map[x][y].sound-=1
+    print("======== Tour {} ========".format(t))
 
     for nh in range(len(Master.Humans)-1, -1, -1):
         h=Master.Humans[nh]
@@ -87,15 +84,8 @@ while t<=Tsimulation:
         print(z.lifespan)
     print()
 
-    #Decrease the lifespan of the zombies
-    for nz in range(len(Master.Zombies)-1,-1,-1):
-        if Master.Zombies[nz].lifespan==1:
-            Master.Zombies[nz].death()
-        else:
-            Master.Zombies[nz].lifespan-=1
-
     #Sauvegarde
-    with open(saveTxt, "a") as f:
+    with open(journalTxt, "a") as f:
         if t>1:
             f.write("***\n")
         f.write(str(len(Master.Humans)))
@@ -112,10 +102,23 @@ while t<=Tsimulation:
             vr,vtheta=round(z.speed[0],2), round(z.speed[1],2)
             f.write("{}/{}/{}/{}/{}".format(x,y,vr,vtheta,z.lifespan))
             f.write("\n")
-        f.write(str(len(events)))
+        f.write(str(len(Master.Events)))
         f.write("\n")
-        for x,y,M in events:
+        for x,y,M in Master.Events:
             f.write("{}/{}/{}".format(x,y,M))
             f.write("\n")
+
+    #reduce the sound
+    for x in range(xSize):
+        for y in range(ySize):
+            if Master.Map[x][y].sound>0:
+                Master.Map[x][y].sound-=1
+
+    #Decrease the lifespan of the zombies
+    for nz in range(len(Master.Zombies)-1,-1,-1):
+        if Master.Zombies[nz].lifespan==0:
+            Master.Zombies[nz].death()
+        else:
+            Master.Zombies[nz].lifespan-=1
     t+=dt
-    events=[]
+    Master.Events=[]

@@ -1,17 +1,17 @@
 mapTxt="Map/Map.txt"
-saveTxt="Map/Save.txt"
+journalTxt="Journal/Journal.txt"
 with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
     xSize=len(lines)-1 #last line shows the buildings
     ySize=len(list(lines[0].split()))
 
-Tsimulation=10
+Tsimulation=8
 dt=1
 attenuationPorte=3
 
-nZombies=3
-nHumans=3
-dInteraction=3
+nZombies=1
+nHumans=1
+dInteraction=10
 
 #Zombie parameters
 zSpeed=1

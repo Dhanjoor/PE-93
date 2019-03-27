@@ -100,7 +100,7 @@ class Visualisator(Tk):
         return('#ff'+txt+txt)
 
     def plotHumain(self,L):
-        d=int(self.ppc/3.5)
+        d=int(self.ppc/2)
         for oval in self.humains:
             self.canvas.delete(oval)
         self.humains=[]
@@ -125,10 +125,18 @@ class Visualisator(Tk):
         self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),5)
 
     def run(self):
-        with open("Journal/Sauvegarde.txt","r") as f:
+        with open("Journal/Journal.txt","r") as f:
             text=f.read()
         turns=text.split("***\n")
+
         def go(t):
+            #reduce volume after a turn
+            for x in range(xSize):
+                for y in range(ySize):
+                    if self.grid[x][y][1]>0:
+                        self.grid[x][y][1]-=1
+                        self.color(x,y,self.reform(self.grid[x][y][1]))
+
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
             self.timer.config(text=str(t))
@@ -147,7 +155,7 @@ class Visualisator(Tk):
             self.plotHumain(Lh)
             self.plotZombie(Lz)
             if t<len(turns)-1:
-                self.after(1000,lambda: go(t+1))
+                self.after(1500,lambda: go(t+1))
         go(0)
 
 E=Visualisator()

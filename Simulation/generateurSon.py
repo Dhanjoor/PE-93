@@ -1,7 +1,7 @@
 #content : 0 rien, 1 porte, 2 mur
 
 def genSound(x0,y0,volume):
-    if x0<0 or x0>=xSize or y0<0 or y0>=ySize or carte[x0][y0].content==2:
+    if x0<0 or x0>=xSize or y0<0 or y0>=ySize or carte[x0][y0].content==2 or volume==0:
         print("error")
         return()
 
