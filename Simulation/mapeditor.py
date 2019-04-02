@@ -239,6 +239,7 @@ class Map_editor(Tk):
     def leave(self,event):
         self.destroy()
 
+#Adapt xsize and ysize in Map_editor class init (line 39) to the size of the map you want to make
 E=Map_editor()
 E.focus_force()
 E.mainloop()

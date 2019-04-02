@@ -1,13 +1,12 @@
 from tkinter import *
 import numpy
+from Parameters import *
 
 class Visualisator(Tk):
     def __init__(self):
         Tk.__init__(self)
 
         # Data
-        self.x_size=0   # In cells
-        self.y_size=0    # In cells
         self.ppc=0         # pixel per cell
         self.onclic='w'    # what to do when the user clic on a cell
         self.nclic = 1     # first or second clic for a new wall of line
@@ -28,24 +27,22 @@ class Visualisator(Tk):
         self.canvas.bind('<Button-1>',self.clic)
 
     def load(self):
-        with open('Map/Map.txt',"r") as f:
+        with open(mapTxt,"r") as f:
             text=f.read()
         lines=text.split('\n')
         batis=lines[-1]
         lines=lines[0:len(lines)-1]
         self.grid=[lines[i].split(' ') for i in range(len(lines))]
-        self.x_size=len(self.grid)
-        self.y_size=len(self.grid[0])
-        self.ppc=int(min(self.winfo_screenwidth()/self.y_size,(self.winfo_screenheight()-300)/self.x_size))
-        self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.timer=Label(self,width=self.ppc,text="COUCOU",font=("Arial",20))
-        self.canvas.config(width=self.ppc*self.y_size,height=self.ppc*self.x_size)
+        self.ppc=int(min(self.winfo_screenwidth()/ySize,(self.winfo_screenheight()-300)/xSize))
+        self.canvas = Canvas(self,width=ySize*self.ppc,height=xSize*self.ppc,bg='white')
+        self.timer=Label(self,width=self.ppc,text="Coucou !",font=("Arial",20))
+        self.canvas.config(width=self.ppc*ySize,height=self.ppc*xSize)
         self.timer.grid(column=0)
-        Button(self,text='launch',command=self.run).grid()
+        Button(self,text='Ça part',command=self.run).grid()
         self.canvas.grid(column=0)
         self.nbati=2
-        for i in range (self.x_size):
-            for j in range (self.y_size):
+        for i in range (xSize):
+            for j in range (ySize):
                 self.grid[i][j]=self.grid[i][j].split('/')
                 for k in range (len(self.grid[i][j])):
                     self.grid[i][j][k]=int(self.grid[i][j][k])
@@ -61,17 +58,20 @@ class Visualisator(Tk):
         self.batiments=([b.split('/') for b in batims])
 
     def color(self,nx,ny,color):
+        #inversion of x/y by Tkinter
         self.canvas.create_rectangle(ny*self.ppc,nx*self.ppc,(ny+1)*self.ppc-1,(nx+1)*self.ppc-1,fill=color,outline=color)
 
     def genSound(self,x0,y0,volume):
-        xMax,yMax=self.x_size,self.y_size
+        xMax,yMax=xSize,ySize
+
         if x0<0 or x0>xMax or y0<0 or y0>yMax:
-            print("error")
-            return
+            print("genSound error")
+            return()
+
         self.grid[x0][y0][1]+=volume
         self.color(x0,y0,self.reform(round(self.grid[x0][y0][1])))
-        if volume==1:
-            return
+        if volume<=1:
+            return()
         moves=[(0,1), (0,-1), (1,0), (-1,0), (-1,-1), (-1,1), (1,-1), (1,1)]
         suivants=[(x0,y0,volume)]
 
@@ -100,21 +100,21 @@ class Visualisator(Tk):
         return('#ff'+txt+txt)
 
     def plotHumain(self,L):
-        d=int(self.ppc/2)
+        d=int(self.ppc/3)
         for oval in self.humains:
             self.canvas.delete(oval)
         self.humains=[]
         for (x,y) in L:
-            px,py=int(self.ppc*x),int(self.ppc*y)
+            px,py=int(self.ppc*y),int(self.ppc*x) #inversion of x/y by Tkinter
             self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ba4a00'))
 
     def plotZombie(self,L):
-        d=int(self.ppc/3.5)
+        d=int(self.ppc/4)
         for oval in self.zombies:
             self.canvas.delete(oval)
         self.zombies=[]
         for (x,y) in L:
-            px,py=int(self.ppc*x),int(self.ppc*y)
+            px,py=int(self.ppc*y),int(self.ppc*x) #inversion of x/y by Tkinter
             self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#4a235a'))
 
     def plotPath(self,path):
@@ -122,10 +122,11 @@ class Visualisator(Tk):
             self.color(x,y,"#aff")
 
     def clic(self,event):
+        #inversion of x/y by Tkinter
         self.genSound(int(event.y/self.ppc),int(event.x/self.ppc),5)
 
     def run(self):
-        with open("Journal/Journal.txt","r") as f:
+        with open(journalTxt,"r") as f:
             text=f.read()
         turns=text.split("***\n")
 
@@ -139,7 +140,7 @@ class Visualisator(Tk):
 
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
-            self.timer.config(text=str(t))
+            self.timer.config(text="Tour "+str(t+1))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")
@@ -151,13 +152,17 @@ class Visualisator(Tk):
             debut,fin=fin+1,fin+1+int(lines[fin])
             for i in range(debut,fin):
                 sound=lines[i].split("/")
-                self.genSound(int(sound[0]),int(sound[1]),int(sound[2]))
+
+                #self.grid[x][y][1]+=int(sound[2])
+                #self.color(int(sound[1]),int(sound[0]),self.reform(self.grid[x][y][1]))
+                self.genSound(int(sound[1]),int(sound[0]),int(sound[2])) #inversion of x/y by Tkinter
             self.plotHumain(Lh)
             self.plotZombie(Lz)
             if t<len(turns)-1:
-                self.after(1500,lambda: go(t+1))
+                self.after(100,lambda: go(t+1))
         go(0)
 
+#Change the first value in self.after (line 162) to fix the time between each turn of the simulation
 E=Visualisator()
 E.focus_force()
 E.mainloop()

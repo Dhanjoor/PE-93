@@ -11,14 +11,34 @@ class Master:
         self.Buildings=[]
         self.Events=[]
 
+    def showMap(self):
+        for i in range(xSize):
+            for j in range(ySize):
+                print(Master.Map[i][j].content, end=" ")
+            print()
+
+    def showBeing(self):
+        L=[[0 for _ in range(ySize)] for _ in range(xSize)]
+        for h in self.Humans:
+            x,y=h.cell
+            L[x][y]="h"
+        for z in self.Zombies:
+            x,y=z.cell
+            L[x][y]="z"
+
+        for i in range(xSize):
+            for j in range(ySize):
+                print(L[i][j], end=" ")
+            print()
+
     def genSound(self,x0,y0,volume):
         self.Events.append((x0,y0,volume))
-        if x0<0 or x0>=xSize or y0<0 or y0>=ySize or self.Map[x0][y0].content==2 or volume==0:
-            print("error")
+        if x0<0 or x0>=xSize or y0<0 or y0>=ySize or (self.Map[x0][y0].content in [1,2]):
+            print("genSound error")
             return()
 
         self.Map[x0][y0].sound+=volume
-        if volume==1:
+        if volume<=1:
             return()
         moves=[(0,1), (0,-1), (1,0), (-1,0), (-1,-1), (-1,1), (1,-1), (1,1)]
         suivants=[(x0,y0,volume)]
@@ -32,8 +52,8 @@ class Master:
                 for dx,dy in moves:
                     x,y=a+dx,b+dy
                     value=M-(dx**2+dy**2)**(1/2)
-                    if x>=0 and x<xSize and y>=0 and y<ySize and self.Map[x][y].content!=2 and not(visited[x-x0+volume][y-y0+volume]) and value>0.5:
-                        if self.Map[x][y].content==1:
+                    if x>=0 and x<xSize and y>=0 and y<ySize and self.Map[x][y].content!=1 and not(visited[x-x0+volume][y-y0+volume]) and value>0.5:
+                        if self.Map[x][y].content==2:
                             value-=attenuationPorte
                             if value<=0.5:
                                 continue
@@ -63,26 +83,42 @@ for _ in range(nZombies):
 for _ in range(nHumans):
     Master.Humans.append(createHuman(Master))
 
+""" Debug
+Master.showMap()
+print()
+Master.showBeing()
+print()
+print("Ça part")"""
+
+
 #Simulation
-t=1
 with open(journalTxt,"w") as f:
     pass
 
+t=1
 while t<=Tsimulation:
 
-    print("======== Tour {} ========".format(t))
+    #print("======== Tour {} ========".format(t))
 
-    for nh in range(len(Master.Humans)-1, -1, -1):
+    nh=len(Master.Humans)-1
+    while nh>=0:
+        if nh>=len(Master.Humans):
+            nh-=1
+            continue
         h=Master.Humans[nh]
         h.action()
-        h.info()
-    print()
-    for nz in range(len(Master.Zombies)-1,-1,-1):
+        nh-=1
+        #h.info()
+    #print()
+    nz=len(Master.Zombies)-1
+    while nz>=0:
+        if nz>=len(Master.Zombies):
+            nz-=1
+            continue
         z=Master.Zombies[nz]
-        print(z.action())
-        z.info()
-        print(z.lifespan)
-    print()
+        z.action()
+        nz-=1
+    #print()
 
     #Sauvegarde
     with open(journalTxt, "a") as f:
@@ -99,8 +135,8 @@ while t<=Tsimulation:
         f.write("\n")
         for z in Master.Zombies:
             x,y=round(z.position[0],2), round(z.position[1],2)
-            vr,vtheta=round(z.speed[0],2), round(z.speed[1],2)
-            f.write("{}/{}/{}/{}/{}".format(x,y,vr,vtheta,z.lifespan))
+            vx,vy=round(z.speed[0],2), round(z.speed[1],2)
+            f.write("{}/{}/{}/{}/{}".format(x,y,vx,vy,z.lifespan))
             f.write("\n")
         f.write(str(len(Master.Events)))
         f.write("\n")
@@ -116,9 +152,16 @@ while t<=Tsimulation:
 
     #Decrease the lifespan of the zombies
     for nz in range(len(Master.Zombies)-1,-1,-1):
-        if Master.Zombies[nz].lifespan==0:
-            Master.Zombies[nz].death()
-        else:
-            Master.Zombies[nz].lifespan-=1
-    t+=dt
+        Master.Zombies[nz].addLifespan(-1)
+
+    t+=1
     Master.Events=[]
+
+""" Debug
+for h in Master.Humans:
+    h.info()
+for z in Master.Zombies:
+    z.info()
+
+Master.showMap()
+Master.showBeing()"""

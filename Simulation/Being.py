@@ -29,11 +29,14 @@ class Being:
 
     def move(self,t,volume):
         if self.stop==0:                                                            #verif that the entity can move
-            self.position[0]+=t*self.speed[0]*self.maxspeed                 #new position of the being
-            self.position[1]+=t*self.speed[1]*self.maxspeed
-            self.cell=[int(self.position[0]),int(self.position[1])]
-            if volume>0:
-                self.Master.genSound(self.cell[0], self.cell[1], volume)
+            x=self.position[0]+t*self.speed[0]*self.maxspeed                 #new position of the being
+            y=self.position[1]+t*self.speed[1]*self.maxspeed
+            if x>=0 and x<xSize and y>=0 and y<ySize and not(self.Master.Map[int(x)][int(y)].content in [1,2]):
+                self.position[0]=x
+                self.position[1]=y
+                self.cell=[int(x),int(y)]
+                if volume>0:
+                    self.Master.genSound(self.cell[0], self.cell[1], volume)
         else:                                                                       #decrease by one the countdown
             self.stop-=1
 
@@ -87,6 +90,11 @@ class Zombie(Being):
         x,y=self.cell
         print("Race: Zombie, case: x={}, y={}".format(x,y))
 
+    def addLifespan(self, s):
+        self.lifespan+=s
+        if self.lifespan<=0:
+            self.death()
+
     def action(self):
         x,y=self.position
         hVision=self.hProximity()
@@ -98,19 +106,17 @@ class Zombie(Being):
             if r==0:
                 self.speed=[0,0]
                 return("human on position")
-            slow=0
-            if r<self.maxspeed:
-                r=self.maxspeed
-                slow=1
+            if r<self.maxspeed*dt:
+                r=self.maxspeed*dt
             self.speed=[(xh-x)/r,(yh-y)/r]
-            self.move(dt,1-slow)
+            self.move(dt, shoutVolume)
             return("human in sight")
 
         xSound, ySound=self.detectSound()
         r=(xSound**2+ySound**2)**0.5
         if r>self.hearing:
             self.speed=[xSound/r, ySound/r]
-            self.move(dt,1)
+            self.move(dt,0)
             return("sound heard")
 
         zVision=self.zProximity()
@@ -121,12 +127,10 @@ class Zombie(Being):
             if r==0:
                 self.speed=[0,0]
                 return("zombie on position")
-            slow=0
-            if r<self.maxspeed:
-                r=self.maxspeed
-                slow=1
+            if r<self.maxspeed*dt:
+                r=self.maxspeed*dt
             self.speed=[(xz-x)/r,(yz-y)/r]
-            self.move(dt,1-slow)
+            self.move(dt,0)
             return("zombie in sight")
 
         return("nothing detected")
@@ -153,13 +157,13 @@ class Human(Being):
 
     def addEnergy(self,e):
         if self.energy+e<0:
-            self.energy=0
+            self.death()
         else:
             self.energy=min(100,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
-            self.hunger=0
+            self.death()
         else:
             self.hunger=min(100,self.hunger+h)
 
@@ -170,35 +174,43 @@ class Human(Being):
         self.Master.Groups[newGroup].append(self)
 
     def action(self):
-        pass
+        for z in self.Master.Zombies:
+            if z.cell==self.cell:
+                self.fight()
+                break
+
+    def death(self):
+        self.Master.Humans.remove(self)
 
     def zombification(self):
-        time.sleep(zIncubationTime*dt)                #waiting for the human to turn into a zombie
-        self.Master.Humans.remove(self)              #removing the entity from class human
+        #time.sleep(zIncubationTime*dt)                #waiting for the human to turn into a zombie
         self.Master.Zombies.append(Zombie(self.Master,self.position))             #creating a new zombie
+        self.death()
 
     def fight(self):
-        self.Master.genSound(self.cell[0],self.cell[1],Bruit)
+        self.Master.genSound(self.cell[0],self.cell[1], fightVolume)
         Zstrength=0
         Zbattle=[]
         for Z in self.zProximity():
             Zbattle.append(Z)
-            Zstrength+=Z.stength
-        Hstrength=0
-        Hbattle=[]
+            Zstrength+=Z.strength
+        Hstrength=self.strength
+        Hbattle=[self]
         for H in self.hProximity():
             if H.group==self.group or H.morality=="hero":
-                Hbattle.append(H)
-                Hstrength+=H.strength                                          #fight system: uniform law.
+                #Hbattle.append(H)
+                #Hstrength+=H.strength                                     #fight system: uniform law.
                 L=Hstrength/(2*(Zstrength+Hstrength))
             else:
                 L=Zstrength/(2*(Zstrength+Hstrength))
-        if Hstrength/(Zstrength+Hstrength)-L>=proba:         #zombie(s) stronger than human
+        if Hstrength/(Zstrength+Hstrength)-uneVariable<=unSeuil:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()
-        elif Hstrength/(Zstrength+Hstrength)+L<=proba:        #human stronger than zombie(s)
+                print("A zombie has joined the fight, the minions of hell grow stronger.")
+        elif Hstrength/(Zstrength+Hstrength)+uneVariable>=unSeuil:        #human stronger than zombie(s)
             for Z in Zbattle:
                 Z.death()
+                print("A zombie has been defeated, the minions of hell grow weaker.")
         else:                                       #human and zombie(s) as strong: human manage to get away
             for Z in Zbattle:
                 Z.stop=2
