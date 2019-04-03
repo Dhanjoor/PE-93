@@ -191,7 +191,7 @@ class Human(Being):
         
         # We create a table of cells that can be passed through
         m=max(xSize,ySize)**2
-        Access=[[m for _ in range(ySize)] for _ in range(xSize)]
+        access=[[m for _ in range(ySize)] for _ in range(xSize)]
         for i in range(xSize):
             for j in range(ySize):
                 if self.Master.Map[i][j].content:
@@ -201,34 +201,35 @@ class Human(Being):
             Access[x][y] = -1
             
         # All possible Moves to a neighbor cell, list of cells to visit, final path
-        Moves=[(1,0),(0,1),(-1,0),(0,-1)]
-        Tovisit=[(self.position[0],self.position[1])]
-        Access[self.position[0]][self.position[1]]=0
+        moves=[(1,0),(0,1),(-1,0),(0,-1)]
+        toVisit=[(self.position[0],self.position[1])]
+        access[self.position[0]][self.position[1]]=0
         
         # BFS
         fini=False
-        while len(Tovisit)>0 and not(fini):
-            x,y=Tovisit.pop()
-            n=Access[x][y]
-            for dx,dy in Moves:
+        while len(toVisit)>0 and not(fini):
+            x,y=toVisit.pop()
+            n=access[x][y]
+            for dx,dy in moves:
                 x2,y2=x+dx,y+dy
-                if (0<=x2 and x2<xSize and 0<=y2 and y2<ySize and Access[x2][y2]>n+1):
-                    Tovisit.insert(0,(x2,y2))
-                    Access[x2][y2]=n+1
+                if (0<=x2 and x2<xSize and 0<=y2 and y2<ySize and access[x2][y2]>n+1):
+                    toVisit.insert(0,(x2,y2))
+                    access[x2][y2]=n+1
                 if (x2,y2)==(xd,yd):
                     fini=True
                     break
                 
         # Extraction of the path
         if fini:
-            Path,x,y,n=[(xd,yd)],xd,yd,Access[xd][yd]
+            path,x,y,n=[(xd,yd)],xd,yd,access[xd][yd]
             while n>0:
-                for dx,dy in Moves:
-                    if (0<=x+dx and x+dx<=xSize-1 and 0<=y+dy and y+dy<=ySize-1 and Access[x+dx][y+dy]==n-1):
+                for dx,dy in moves:
+                    if (0<=x+dx and x+dx<=xSize-1 and 0<=y+dy and y+dy<=ySize-1 and access[x+dx][y+dy]==n-1):
                         x,y,n=x+dx,y+dy,n-1
-                        Path.insert(0,(x,y))
+                        path.append((x,y))
                         break
-            return Path
+            path.reverse()
+            return path
         else:
             return ([])        
         
