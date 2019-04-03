@@ -1,6 +1,7 @@
 from Parameters import *
 from Cell import *
 from CreateBeing import *
+from Buildings import *
 from random import randint
 
 class Master:
@@ -10,6 +11,7 @@ class Master:
         self.Zombies=[]
         self.Buildings=[]
         self.Events=[]
+        self.Turn=1
 
     def showMap(self):
         for i in range(xSize):
@@ -76,6 +78,23 @@ for i in range(xSize):
         Master.Map[i][j].idBuilding=int(cell[0])
         Master.Map[i][j].sound=int(cell[1])
         Master.Map[i][j].content=int(cell[2])
+"""
+buildings=lines[-1].split()
+for b in buildings:
+    elements=b.split("/")
+    corners=elements[0].split("-")
+    x1,y1=corners[0].split("_")
+    x2,y2=corners[1].split("_")
+    nFood, nRest=int(elements[1]), int(elements[2])
+    building=Building([(int(x1),int(y1)),(int(x2),int(y2))],nFood,nRest,[])
+    doors=elements[3].split("-")
+    for door in doors:
+        xd,yd=door.split("_")
+        building.doors.append((int(xd),int(yd)))
+    Master.Buildings.append(building)
+
+for b in Master.Buildings:
+    b.affiche()"""
 
 for _ in range(nZombies):
     Master.Zombies.append(createZombie(Master))
@@ -95,8 +114,7 @@ print("Ça part")"""
 with open(journalTxt,"w") as f:
     pass
 
-t=1
-while t<=Tsimulation:
+while Master.Turn<=Tsimulation:
 
     #print("======== Tour {} ========".format(t))
 
@@ -122,7 +140,7 @@ while t<=Tsimulation:
 
     #Sauvegarde
     with open(journalTxt, "a") as f:
-        if t>1:
+        if Master.Turn>1:
             f.write("***\n")
         f.write(str(len(Master.Humans)))
         f.write("\n")
@@ -154,7 +172,7 @@ while t<=Tsimulation:
     for nz in range(len(Master.Zombies)-1,-1,-1):
         Master.Zombies[nz].addLifespan(-1)
 
-    t+=1
+    Master.Turn+=1
     Master.Events=[]
 
 """ Debug
