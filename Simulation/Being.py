@@ -26,7 +26,8 @@ class Being:
         self.agilty=agility                 #agility trait (don't change)
         self.stop=0                         #countdown when the entity stop moving
         self.maxspeed=maxspeed              #maximal speed
-
+        self.fighting=False                 #Shows whether or not the being is fighting this turn
+        
     def move(self,t,volume):
         if self.stop==0:                                                            #verif that the entity can move
             x=self.position[0]+t*self.speed[0]*self.maxspeed                 #new position of the being
@@ -174,11 +175,38 @@ class Human(Being):
         self.Master.Groups[newGroup].append(self)
 
     def action(self):
+        self.fighting=False
+        if not self.knowing:
+            self.detectZ()
+            
+        elif self.stress>90:
+            sx,sy=random(),random()
+            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
+            d=self.maxspeed*random()
+            sx,sy=d*sx,d*sy
+            self.speed=[sx,sy]
+#        elif self.hunger<10:
+#           pass
+#            action=manger
+#        else:
+#            pass
+#            action=Normal
         for z in self.Master.Zombies:
             if z.cell==self.cell:
                 self.fight()
                 break
-
+                
+    def detectZ(self):
+        if len(self.Zproximity())>=10:
+            self.knowing=True
+            self.stress=90
+        else:
+            for x in self.Zproximity():
+                if x.fighting==True:
+                    self.knowing=True
+                    self.stress=90
+                    break
+                
     def death(self):
         self.Master.Humans.remove(self)
 
@@ -239,13 +267,16 @@ class Human(Being):
         Zbattle=[]
         for Z in self.zProximity():
             Zbattle.append(Z)
+            Z.fighting=True
             Zstrength+=Z.strength
         Hstrength=self.strength
         Hbattle=[self]
+        self.fighting=True
         for H in self.hProximity():
             if H.group==self.group or H.morality=="hero":
                 #Hbattle.append(H)
                 #Hstrength+=H.strength                                     #fight system: uniform law.
+                H.fighting=True
                 L=Hstrength/(2*(Zstrength+Hstrength))
             else:
                 L=Zstrength/(2*(Zstrength+Hstrength))
