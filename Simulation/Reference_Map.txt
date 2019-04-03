@@ -1,0 +1,38 @@
+Map.txt :
+
+Français:
+
+- Les lignes de la grille sont séparées par '\n' (retour à la ligne), les cases sont séparées par des espaces. Pour chaque case, un texte 'a/b/c/...' où a,b,c... définissent:
+	- Le premier paramètre a, pour un mur ou une porte, est l'Id du bâtiment qu'il constitue (0 pour un mur sans bâtiment). Ce paramètre est à 0 pour les autres types de cases.
+	- Le deuxième paramètre b est le niveau de bruit sur la case.
+	- Le troisième paramètre c est le type de la case:
+		- 0 pour un vide
+		- 1 pour un mur
+		- 2 pour une porte
+		- 3 pour une zone de nourriture
+		- 4 pour une zone de repos
+
+- La dernière ligne du texte représente les bâtiments, séparés par un espace. Pour chaque bâtiment la convention est (où x et y sont les coordonées d'une case) :
+coin_haut_gauche[x] / coin_haut_gauche[y] / coin_bas_droite[x] / coin_bas_droite[y] / porte1[x] / porte1[y] / porte2[x] / ...
+
+Anglais:
+
+-	Contain the information about every cells. Lines of cell are separated by a '\n' (linebreak),
+	cells are separated by a space. For each cell, there is a 'a/b/c/...' string where a,b,c... are
+	caracteristics of the cell.
+
+-	The first parameter a is the Id of the parent building for a wall/door. It is 0 for any other
+	type of cell.
+
+-	The second parameter b is the level of noise in the cell.
+
+-	The third parameter c is the type of the cell :
+	- 0 is empty
+	- 1 is a wall
+	- 2 is a door
+	- 3 is a food cell
+	- 4 is a rest cell
+
+-	The last line of the text represent all the buildings, separed by a space. For each building there
+	is a string with the convention: (where x,y are coordinates for a cell)
+	topleftcorner[x]/topleftcorner[y]/bottomrightcorner[x]/bottomrightcorner[y]/door1[x]/door1[y]/door2[x]/...
