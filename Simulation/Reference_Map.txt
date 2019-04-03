@@ -1,19 +1,21 @@
 Map.txt :
 
-Français:
+FranÃ§ais:
 
-- Les lignes de la grille sont séparées par '\n' (retour à la ligne), les cases sont séparées par des espaces. Pour chaque case, un texte 'a/b/c/...' où a,b,c... définissent:
-	- Le premier paramètre a, pour un mur ou une porte, est l'Id du bâtiment qu'il constitue (0 pour un mur sans bâtiment). Ce paramètre est à 0 pour les autres types de cases.
-	- Le deuxième paramètre b est le niveau de bruit sur la case.
-	- Le troisième paramètre c est le type de la case:
+- Les lignes de la grille sont sÃ©parÃ©es par '\n' (retour Ã  la ligne), les cases sont sÃ©parÃ©es par des espaces. Pour chaque case, un texte 'a/b/c/...' oÃ¹ a,b,c... dÃ©finissent:
+	- Le premier paramÃ¨tre a, pour un mur ou une porte, est l'Id du bÃ¢timent qu'il constitue (0 pour un mur sans bÃ¢timent). Ce paramÃ¨tre est Ã  0 pour les autres types de cases.
+	- Le deuxiÃ¨me paramÃ¨tre b est le niveau de bruit sur la case.
+	- Le troisiÃ¨me paramÃ¨tre c est le type de la case:
 		- 0 pour un vide
 		- 1 pour un mur
 		- 2 pour une porte
 		- 3 pour une zone de nourriture
 		- 4 pour une zone de repos
 
-- La dernière ligne du texte représente les bâtiments, séparés par un espace. Pour chaque bâtiment la convention est (où x et y sont les coordonées d'une case) :
-coin_haut_gauche[x] / coin_haut_gauche[y] / coin_bas_droite[x] / coin_bas_droite[y] / porte1[x] / porte1[y] / porte2[x] / ...
+- La derniÃ¨re ligne du texte reprÃ©sente les bÃ¢timents, sÃ©parÃ©s par un espace. Pour chaque bÃ¢timent la convention est (oÃ¹ x et y sont les coordonÃ©es d'une case) :
+
+coinHautGauche[x]_coinHautGauche[y]-coinBasDroite[x]_coinBasDroite[y] / nombreCasesNourriture / nombreCasesRepos / porte1[x]_porte1[y]-porte2[x]_porte2[y] ...
+
 
 Anglais:
 
@@ -35,4 +37,5 @@ Anglais:
 
 -	The last line of the text represent all the buildings, separed by a space. For each building there
 	is a string with the convention: (where x,y are coordinates for a cell)
-	topleftcorner[x]/topleftcorner[y]/bottomrightcorner[x]/bottomrightcorner[y]/door1[x]/door1[y]/door2[x]/...
+	
+	topLeftCorner[x]_topLeftCorner[y]-bottomRightCorner[x]_bottomRightCorner[y] / numberFoodCells / numberRestCell / door1[x]_door1[y]-door2[x]_door2[y] ...
