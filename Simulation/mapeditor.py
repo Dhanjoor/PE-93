@@ -245,7 +245,17 @@ class Map_editor(Tk):
                     elif self.grid[i][j][2]==4:
                         self.color(i,j,'green')
             batims=batis.split(' ')
-            self.batiments=[b.split('/') for b in batims]
+            for b in batims:
+                l=b.split("/")
+                xy=l[0].split("-")
+                [x1,y1],[x2,y2]=xy[0].split("_"),xy[1].split("_")
+                nf,nr=l[1],l[2]
+                doors=l[3].split("-")
+                ld=[] #list of doors
+                for d in doors:
+                    [x,y]=d.split("_")
+                    ld.append((int(x),int(y)))
+                self.batiments.append([[int(x1),int(y1),int(x2),int(y2)],int(nf),int(nr),ld])
         except:
             pass
 
