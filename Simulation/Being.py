@@ -215,8 +215,16 @@ class Human(Being):
         self.Master.Zombies.append(Zombie(self.Master,self.position))             #creating a new zombie
         self.death()
 
-    def pathfinding(self,xd,yd): # xh,yh position of human, xd,yd position of door
-        
+    def pathfinding(self,ressource):
+        distance=xSize+ySize
+        xd,yd=-1,-1
+        for bati in self.Master.Buildings:
+            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0):
+                for door in bati.doors:
+                    if ((door[0]-self.position[0])^2+(door[1]-self.position[1])^2)^0.5<distance:
+                        xd,yd=door[0],door[1]    # xd,yd position of door
+        if (xd,yd)==(-1,-1):
+            return []
         # We create a table of cells that can be passed through
         m=max(xSize,ySize)**2
         access=[[m for _ in range(ySize)] for _ in range(xSize)]
