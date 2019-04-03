@@ -44,7 +44,7 @@ class Map_editor(Tk):
         self.firstcase = (0,0)     # first clic for a wall of line
         self.grid=[[[0,0,0] for _ in range (self.y_size)] for _ in range (self.x_size)]
         self.nbati=1
-        self.batiments=[]
+        self.batiments=[]    # each building is [[topLeftCornerX,topLeftCornerY,bottomRightCornerX,bottomRightCornerY],nbCaseFood,nbCaseRepos,[(porteXi,porteYi)]]
         # Each cell is [x,y,z] where y is noise level and z is wall/not wall
 
         #Canvas
@@ -106,20 +106,29 @@ class Map_editor(Tk):
                 self.add_line(self.firstcase[0],self.firstcase[1],ny,nx)
                 self.nclic-=1
         elif self.onclic == 'b':
-            if self.nclic == 1:
+            if self.nclic == 1 and self.isInBati(nx,ny) == -1:
                 self.firstcase = (ny,nx)
+                self.color(ny,nx,"grey")
                 self.nclic+=1
-            elif self.nclic == 2:
-                self.nclic +=1
+            elif self.nclic == 2 and self.isInBati(nx,ny) == -1:
                 self.add_build(self.firstcase[0],self.firstcase[1],ny,nx)
+                self.nclic+=1
             else:
                 self.adddoor(ny,nx)
         elif self.onclic == 'f':            # food zone on cilc
-            self.grid[ny][nx][2]=3
-            self.color(ny,nx,'yellow')
+            i=self.isInBati(ny,nx)
+            if i != -1:
+                self.grid[ny][nx][2]=3
+                self.grid[ny][nx][0]=i
+                self.color(ny,nx,'yellow')
+                self.batiments[i][1]+=1
         elif self.onclic == 'r':            # rest zone on cilc
-            self.grid[ny][nx][2]=4
-            self.color(ny,nx,'green')
+            i=self.isInBati(ny,nx)
+            if i != -1:
+                self.grid[ny][nx][2]=4
+                self.grid[ny][nx][0]=i
+                self.color(ny,nx,'green')
+                self.batiments[i][2]+=1
         elif self.onclic == 'clb':
             self.grid[ny][nx][2]=0
             self.color(ny,nx,'white')
@@ -146,8 +155,7 @@ class Map_editor(Tk):
         if self.grid[nx][ny][0] == self.nbati:
             self.grid[nx][ny][2]=2
             self.color(nx,ny,'blue')
-        self.batiments[self.nbati-1].append(nx)
-        self.batiments[self.nbati-1].append(ny)
+        self.batiments[self.nbati-1][3].append((nx,ny))
 
     def add_build(self,nx1,ny1,nx2,ny2):
         for nx in range (min(nx1,nx2),max(nx1,nx2)+1):
@@ -156,7 +164,15 @@ class Map_editor(Tk):
         for ny in range (min(ny1,ny2),max(ny1,ny2)+1):
             self.add_wallinbati(min(nx1,nx2),ny)
             self.add_wallinbati(max(nx1,nx2),ny)
-        self.batiments.append([nx1,ny1,nx2,ny2])
+        self.batiments.append([[nx1,ny1,nx2,ny2],0,0,[]])
+        
+    def isInBati(self,x,y):
+        for i in range(len(self.batiments)):
+            [l,a,b,c]=self.batiments[i]
+            x1,y1,x2,y2=l
+            if (x1<=x) and (x<=x2) and  (y1<=y) and (y<=y2):
+                return i
+        return -1
 
     def color(self,nx,ny,color):
         self.canvas.create_rectangle(ny*self.ppc,nx*self.ppc,(ny+1)*self.ppc-1,(nx+1)*self.ppc-1,fill=color,outline=color)
@@ -171,9 +187,12 @@ class Map_editor(Tk):
                         f.write(str(g[i][j][0])+'/'+str(g[i][j][1])+'/'+str(g[i][j][2])+' ')
                     f.write(str(g[i][len(g[0])-1][0])+'/'+str(g[i][len(g[0])-1][1])+'/'+str(g[i][len(g[0])-1][2])+'\n')
                 for i in range (len(self.batiments)):
-                    for j in range (len(self.batiments[i])-1):
-                        f.write(str(self.batiments[i][j])+'/')
-                    f.write(str(self.batiments[i][-1]))
+                    lw,nf,nb,ld=self.batiments[i]
+                    txt=str(lw[0])+"_"+str(lw[1])+"-"+str(lw[2])+"_"+str(lw[3])+"/"+str(nf)+"/"+str(nb)+"/"
+                    for (x,y) in ld:
+                        txt=txt+str(x)+"_"+str(y)+"-"
+                    txt=txt[0:-1]
+                    f.write(txt)
                     if i!=len(self.batiments)-1:
                         f.write(' ')
 
