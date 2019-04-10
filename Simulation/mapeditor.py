@@ -75,6 +75,8 @@ class Map_editor(Tk):
         self.onclicfood_button = Button(self.frame3,text='Zone food au clic',command=lambda: self.setclic('f'))
         self.onclicrest_button = Button(self.frame3,text='Zone repos au clic',command=lambda: self.setclic('r'))
         self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
+        self.selectbati_button= Button(self.frame3,text='Carte au clic',command=self.loadbis)
+        self.onclicput_button= Button(self.frame3,text='Mettre au clic',command=lambda: self.setclic('cp'))
 
         #Layout
         self.frame0.grid(row=0,column=1)
@@ -102,6 +104,9 @@ class Map_editor(Tk):
         self.onclicfood_button.grid(row=5,column=0)
         self.onclicrest_button.grid(row=6,column=0)
         self.onclicclear_button.grid(row=7,column=0)
+        self.selectbati_button.grid(row=8,column=0)
+        self.onclicput_button.grid(row=9,column=0)
+
         
     def setDim(self):
         self.x_size=int(self.xEntry.get())    # In cells
@@ -155,7 +160,36 @@ class Map_editor(Tk):
         elif self.onclic == 'clb':
             self.grid[ny][nx][2]=0
             self.color(ny,nx,'white')
-
+        
+        elif self.onclic == 'cp':
+            for i in range (len(self.grid_temp)):
+                for j in range (len(self.grid_temp[0])):
+                    self.grid[i+ny][j+nx]=self.grid_temp[i][j]
+                    for k in range (len(self.grid_temp[i][j])):
+                        self.grid[i+ny][j+nx][k]=int(self.grid_temp[i][j][k])
+            for i in range (len(self.grid)):
+                for j in range (len(self.grid[0])):
+                    if self.grid[i][j][2]==1:
+                        self.color(i,j,'black')
+                    elif self.grid[i][j][2]==2:
+                        self.color(i,j,'blue')
+                    elif self.grid[i][j][2]==3:
+                        self.color(i,j,'yellow')
+                    elif self.grid[i][j][2]==4:
+                        self.color(i,j,'green')
+            nx1=self.cartetempdata[0]+nx
+            ny1=self.cartetempdata[1]+ny
+            nx2=self.cartetempdata[2]+nx
+            ny2=self.cartetempdata[3]+ny
+            nurri=self.cartetempdata[4]
+            lits=self.cartetempdata[5]
+            temp_porte=self.cartetempdata[-1]
+            self.batiments.append([[nx1,ny1,nx2,ny2],nurri,lits,[]])
+            self.nbati+=1
+            for i in temp_porte:
+                nxx=i[0]+nx
+                nyy=i[1]+ny
+                self.batiments[-1][3].append((nxx,nyy))
     def rclic(self,event):
         self.nclic = 1
         self.nbati += 1
@@ -284,12 +318,61 @@ class Map_editor(Tk):
         elif txt == 'clb':
             self.onclic = 'clb'
             self.onclic_label.config(text='Cliquer pour nettoyer un point')
-        if txt == 'r':
+        elif txt == 'r':
             self.onclic = 'r'
             self.onclic_label.config(text='Cliquer pour ajouter \n une zone de repos')
+        elif txt == 'cp':
+            self.onclic = 'cp'
+            self.onclic_label.config(text='Cliquer pour mettre une patiment')
 
     def leave(self,event):
         self.destroy()
+        
+    def loadbis(self):
+        mafenetre = Tk()
+        mafenetre.title('selectionner la carte')
+        label = Label(mafenetre, text = 'Nom : ')
+        label.pack(side = LEFT, padx = 5, pady = 5)
+        texte = Entry(mafenetre, bg ='bisque', fg='maroon')
+        texte.focus_set()
+        texte.pack(side = LEFT, padx = 5, pady = 5)
+        bouton = Button(mafenetre, text ='OK', command = lambda :self.carte_temp(texte,mafenetre)).pack(side=LEFT, padx = 5,pady = 5)
+    
+    def carte_temp(self,texte,fenetre):
+        filename='Map/'+texte.get()
+        fenetre.destroy()
+        try:
+            with open(filename+'.txt',"r") as f:
+                text=f.read()
+            lines=text.split('\n')
+            batis=lines[-1]
+            a=batis.split("/")
+            b0=a[0].split("-")
+            c0=b0[0].split("_")
+            c1=b0[1].split("_")
+            position_x1=int(c0[0])
+            position_y1=int(c0[1])
+            position_x2=int(c1[0])
+            position_y2=int(c1[1])
+            nurriture=int(a[1])
+            lits=int(a[2])
+            b3=a[3].split("-")
+            porte_liste=[]
+            for i in b3:
+                c3=i.split("_")
+                portetemp=(int(c3[0]),int(c3[1]))
+                porte_liste.append(portetemp)
+            self.cartetempdata=[position_x1,position_y1,position_x2,position_y2,nurriture,lits,porte_liste]
+            lines=lines[0:len(lines)-1]
+            self.grid_temp=[lines[i].split(' ') for i in range(len(lines))]
+            self.nbati=1
+            for i in range (len(self.grid_temp)):
+                for j in range (len(self.grid_temp[0])):
+                    self.grid_temp[i][j]=self.grid_temp[i][j].split('/')
+                    for k in range (len(self.grid_temp[i][j])):
+                        self.grid_temp[i][j][k]=int(self.grid_temp[i][j][k])
+        except:
+            pass
 
 #Adapt xsize and ysize in Map_editor class init (line 39) to the size of the map you want to make
 E=Map_editor()
