@@ -219,7 +219,7 @@ class Human(Being):
         distance=xSize+ySize
         xd,yd=-1,-1
         for bati in self.Master.Buildings:
-            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0):
+            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
                 for door in bati.doors:
                     if ((door[0]-self.position[0])^2+(door[1]-self.position[1])^2)^0.5<distance:
                         xd,yd=door[0],door[1]    # xd,yd position of door
