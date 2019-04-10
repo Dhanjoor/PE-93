@@ -48,25 +48,17 @@ class Map_editor(Tk):
         # Each cell is [x,y,z] where y is noise level and z is wall/not wall
 
         #Canvas
-        self.canvas = 0
+        self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
+        self.canvas.grid(row=0,column=0,rowspan=10)
 
         #Save/Open
-        self.frame0 = Frame(self)
-        self.xLabel = Label(self.frame0,text="Nb de case en largeur:")
-        self.xEntry = Entry(self.frame0)
-        self.yLabel = Label(self.frame0,text="Nb de case en longueur:")
-        self.yEntry = Entry(self.frame0)
-        self.goBut = Button(self.frame0,text="Okay",command=self.setDim)
-        
         self.frame1 = Frame(self)
         self.filename_label = Label(self.frame1,text='Nom de la carte (no file extension)')
         self.filename_entry = Entry(self.frame1)
-        
         self.frame2 = Frame(self)
         self.finish_button = Button(self.frame2,text='Sauvegarder',command=self.finish)
         self.open_button = Button(self.frame2,text='Ouvrir',command=self.load)
         self.clear_button = Button(self.frame2,text='Nettoyer',command=self.clear)
-        
         self.frame3 = Frame(self)
         self.onclic_label = Label(self.frame3,text='Cliquer pour ajouter un mur')
         self.onclicwall_button = Button(self.frame3,text='Mur au clic',command=lambda: self.setclic('w'))
@@ -75,27 +67,18 @@ class Map_editor(Tk):
         self.onclicfood_button = Button(self.frame3,text='Zone food au clic',command=lambda: self.setclic('f'))
         self.onclicrest_button = Button(self.frame3,text='Zone repos au clic',command=lambda: self.setclic('r'))
         self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
-        self.selectbati_button= Button(self.frame3,text='Carte au clic',command=self.loadbis)
-        self.onclicput_button= Button(self.frame3,text='Mettre au clic',command=lambda: self.setclic('cp'))
 
         #Layout
-        self.frame0.grid(row=0,column=1)
-        self.xLabel.grid(row=0,column=0)
-        self.xEntry.grid(row=0,column=1)
-        self.yLabel.grid(row=1,column=0)
-        self.yEntry.grid(row=1,column=1)
-        self.goBut.grid(row=2,column=0,columnspan=2)
-        
-        self.frame1.grid(row=1,column=1)
+        self.frame1.grid(row=0,column=1)
         self.filename_label.grid(row=0,column=0)
         self.filename_entry.grid(row=1,column=0)
 
-        self.frame2.grid(row=2,column=1)
+        self.frame2.grid(row=1,column=1)
         self.finish_button.grid(row=0,column=0)
         self.open_button.grid(row=1,column=0)
         self.clear_button.grid(row=2,column=0)
 
-        self.frame3.grid(row=3,column=1)
+        self.frame3.grid(row=2,column=1)
         Label(self.frame3,text='------').grid(row=0,column=0)
         self.onclic_label.grid(row=1,column=0)
         self.onclicwall_button.grid(row=2,column=0)
@@ -104,18 +87,7 @@ class Map_editor(Tk):
         self.onclicfood_button.grid(row=5,column=0)
         self.onclicrest_button.grid(row=6,column=0)
         self.onclicclear_button.grid(row=7,column=0)
-        self.selectbati_button.grid(row=8,column=0)
-        self.onclicput_button.grid(row=9,column=0)
 
-        
-    def setDim(self):
-        self.x_size=int(self.xEntry.get())    # In cells
-        self.y_size=int(self.yEntry.get())    # In cells
-        self.grid=[[[0,0,0] for _ in range (self.y_size)] for _ in range (self.x_size)]
-        self.ppc=int(min((self.winfo_screenwidth()-300)/self.y_size,self.winfo_screenheight()/self.x_size))
-        self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.canvas.grid(row=0,column=0,rowspan=10)
-        
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
         self.canvas.bind('<Button-3>',self.rclic)
@@ -160,24 +132,6 @@ class Map_editor(Tk):
         elif self.onclic == 'clb':
             self.grid[ny][nx][2]=0
             self.color(ny,nx,'white')
-        
-        elif self.onclic == 'cp':
-            for i in range (len(self.grid_temp)):
-                for j in range (len(self.grid_temp[0])):
-                    self.grid[i+ny][j+nx]=self.grid_temp[i][j]
-                    for k in range (len(self.grid_temp[i][j])):
-                        self.grid[i+ny][j+nx][k]=int(self.grid_temp[i][j][k])
-            for i in range (len(self.grid)):
-                for j in range (len(self.grid[0])):
-                    if self.grid[i][j][2]==1:
-                        self.color(i,j,'black')
-                    elif self.grid[i][j][2]==2:
-                        self.color(i,j,'blue')
-                    elif self.grid[i][j][2]==3:
-                        self.color(i,j,'yellow')
-                    elif self.grid[i][j][2]==4:
-                        self.color(i,j,'green')
-
 
     def rclic(self,event):
         self.nclic = 1
@@ -211,7 +165,7 @@ class Map_editor(Tk):
             self.add_wallinbati(min(nx1,nx2),ny)
             self.add_wallinbati(max(nx1,nx2),ny)
         self.batiments.append([[nx1,ny1,nx2,ny2],0,0,[]])
-        
+
     def isInBati(self,x,y):
         for i in range(len(self.batiments)):
             [l,a,b,c]=self.batiments[i]
@@ -268,17 +222,7 @@ class Map_editor(Tk):
                     elif self.grid[i][j][2]==4:
                         self.color(i,j,'green')
             batims=batis.split(' ')
-            for b in batims:
-                l=b.split("/")
-                xy=l[0].split("-")
-                [x1,y1],[x2,y2]=xy[0].split("_"),xy[1].split("_")
-                nf,nr=l[1],l[2]
-                doors=l[3].split("-")
-                ld=[] #list of doors
-                for d in doors:
-                    [x,y]=d.split("_")
-                    ld.append((int(x),int(y)))
-                self.batiments.append([[int(x1),int(y1),int(x2),int(y2)],int(nf),int(nr),ld])
+            self.batiments=[b.split('/') for b in batims]
         except:
             pass
 
@@ -307,47 +251,12 @@ class Map_editor(Tk):
         elif txt == 'clb':
             self.onclic = 'clb'
             self.onclic_label.config(text='Cliquer pour nettoyer un point')
-        elif txt == 'r':
+        if txt == 'r':
             self.onclic = 'r'
             self.onclic_label.config(text='Cliquer pour ajouter \n une zone de repos')
-        elif txt == 'cp':
-            self.onclic = 'cp'
-            self.onclic_label.config(text='Cliquer pour mettre une patiment')
 
     def leave(self,event):
         self.destroy()
-        
-    def loadbis(self):
-        mafenetre = Tk()
-        mafenetre.title('selectionner la carte')
-        label = Label(mafenetre, text = 'Nom : ')
-        label.pack(side = LEFT, padx = 5, pady = 5)
-        texte = Entry(mafenetre, bg ='bisque', fg='maroon')
-        texte.focus_set()
-        texte.pack(side = LEFT, padx = 5, pady = 5)
-        bouton = Button(mafenetre, text ='OK', command = lambda :self.carte_temp(texte,mafenetre)).pack(side=LEFT, padx = 5,pady = 5)
-    
-    def carte_temp(self,texte,fenetre):
-        filename='Map/'+texte.get()
-        fenetre.destroy()
-        try:
-            with open(filename+'.txt',"r") as f:
-                text=f.read()
-            lines=text.split('\n')
-            batis=lines[-1]
-            print(batis)
-            lines=lines[0:len(lines)-1]
-            self.grid_temp=[lines[i].split(' ') for i in range(len(lines))]
-            self.nbati=1
-            for i in range (len(self.grid_temp)):
-                for j in range (len(self.grid_temp[0])):
-                    self.grid_temp[i][j]=self.grid_temp[i][j].split('/')
-                    for k in range (len(self.grid_temp[i][j])):
-                        self.grid_temp[i][j][k]=int(self.grid_temp[i][j][k])
-            batims=batis.split(' ')
-            self.batiments.append([b.split('/') for b in batims])
-        except:
-            pass
 
 #Adapt xsize and ysize in Map_editor class init (line 39) to the size of the map you want to make
 E=Map_editor()

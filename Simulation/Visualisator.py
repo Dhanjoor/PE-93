@@ -152,14 +152,12 @@ class Visualisator(Tk):
             debut,fin=fin+1,fin+1+int(lines[fin])
             for i in range(debut,fin):
                 sound=lines[i].split("/")
+                self.genSound(int(sound[0]),int(sound[1]),int(sound[2])) #inversion of x/y by Tkinter
 
-                #self.grid[x][y][1]+=int(sound[2])
-                #self.color(int(sound[1]),int(sound[0]),self.reform(self.grid[x][y][1]))
-                self.genSound(int(sound[1]),int(sound[0]),int(sound[2])) #inversion of x/y by Tkinter
             self.plotHumain(Lh)
             self.plotZombie(Lz)
             if t<len(turns)-1:
-                self.after(100,lambda: go(t+1))
+                self.after(10,lambda: go(t+1))
         go(0)
 
 #Change the first value in self.after (line 162) to fix the time between each turn of the simulation

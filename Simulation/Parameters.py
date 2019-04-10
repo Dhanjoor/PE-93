@@ -1,12 +1,12 @@
-mapTxt="Map/blank30x30.txt"
+mapTxt="Map/crossWall.txt"
 journalTxt="Journal/Journal.txt"
 with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
     xSize=len(lines)-1 #last line shows the buildings
     ySize=len(list(lines[0].split()))
 
-Tsimulation=100
-dt=1
+Tsimulation=1000
+dt=0.1
 attenuationPorte=3
 
 shoutVolume=0
@@ -24,7 +24,7 @@ zVision=1
 zHearing=1
 zStrength=2
 zAgility=1
-zLifespan=101
+zLifespan=900
 zIncubationTime=10
 zMaxspeed=1
 
@@ -39,4 +39,4 @@ pMoralities=[1/4, 1/2, 1/4] #proba of being "evil","neutral","hero"
 
 pBehaviors=[1/3, 1/3, 1/3]  #proba of being using mostly "flee","hide","fight"
 
-pStress=[1/3, 1/3, 1/3] #proba of being "zen","stable","stressed"
+pColdblood=[1/3, 1/3, 1/3] #proba of being "zen","stable","stressed"

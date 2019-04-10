@@ -6,7 +6,7 @@ def createZombie(Master):
     x,y=randint(2, xSize-3), randint(2, ySize-3)
     while Master.Map[x][y].content!=0 or Master.Map[x][y].idBuilding!=0:
         x,y=randint(2, xSize-3), randint(2, ySize-3)
-    x,y=x+random(),y+random()
+    #x,y=x+random(),y+random()
 
     return(Zombie(Master, [x,y]))
 
@@ -36,9 +36,9 @@ def createHuman(Master):
         behavior="fight"
 
     coldblood=random()
-    if coldblood<=pStress[0]:
+    if coldblood<=pColdblood[0]:
         coldblood="zen"
-    elif coldblood<=pStress[1]+pStress[0]:
+    elif coldblood<=pColdblood[1]+pColdblood[0]:
         coldblood="stable"
     else:
         coldblood="stressed"
@@ -46,6 +46,6 @@ def createHuman(Master):
     x,y=randint(2, xSize-3), randint(2, ySize-3)
     while Master.Map[x][y].content!=0:
         x,y=randint(2, xSize-3), randint(2, ySize-3)
-    x,y=x+random(),y+random()
+    #x,y=x+random(),y+random()
 
     return(Human(Master, [x,y],ability[0], ability[1], ability[2], coldblood, morality, behavior))

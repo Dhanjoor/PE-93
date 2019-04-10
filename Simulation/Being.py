@@ -27,7 +27,7 @@ class Being:
         self.stop=0                         #countdown when the entity stop moving
         self.maxspeed=maxspeed              #maximal speed
         self.fighting=False                 #Shows whether or not the being is fighting this turn
-        
+
     def move(self,t,volume):
         if self.stop==0:                                                            #verif that the entity can move
             x=self.position[0]+t*self.speed[0]*self.maxspeed                 #new position of the being
@@ -178,7 +178,7 @@ class Human(Being):
         self.fighting=False
         if not self.knowing:
             self.detectZ()
-            
+
         elif self.stress>90:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
@@ -195,7 +195,7 @@ class Human(Being):
             if z.cell==self.cell:
                 self.fight()
                 break
-                
+
     def detectZ(self):
         if len(self.zProximity())>=10:
             self.knowing=True
@@ -206,7 +206,7 @@ class Human(Being):
                     self.knowing=True
                     self.stress=90
                     break
-                
+
     def death(self):
         self.Master.Humans.remove(self)
 
@@ -235,12 +235,12 @@ class Human(Being):
         for zombie in self.Master.Zombies :
             x,y=zombie.cell
             Access[x][y] = -1
-            
+
         # All possible Moves to a neighbor cell, list of cells to visit, final path
         moves=[(1,0),(0,1),(-1,0),(0,-1)]
         toVisit=[(self.position[0],self.position[1])]
         access[self.position[0]][self.position[1]]=0
-        
+
         # BFS
         fini=False
         while len(toVisit)>0 and not(fini):
@@ -254,7 +254,7 @@ class Human(Being):
                 if (x2,y2)==(xd,yd):
                     fini=True
                     break
-                
+
         # Extraction of the path
         if fini:
             path,x,y,n=[(xd,yd)],xd,yd,access[xd][yd]
@@ -267,8 +267,8 @@ class Human(Being):
             path.reverse()
             return path
         else:
-            return ([])        
-        
+            return ([])
+
     def fight(self):
         self.Master.genSound(self.cell[0],self.cell[1], fightVolume)
         Zstrength=0
