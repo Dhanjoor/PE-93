@@ -392,7 +392,7 @@ class Map_editor(Tk):
             self.cartetempdata=[position_x1,position_y1,position_x2,position_y2,nurriture,lits,porte_liste]
             lines=lines[0:len(lines)-1]
             self.grid_temp=[lines[i].split(' ') for i in range(len(lines))]
-            self.nbati=1
+            self.nbati+=1
             for i in range (len(self.grid_temp)):
                 for j in range (len(self.grid_temp[0])):
                     self.grid_temp[i][j]=self.grid_temp[i][j].split('/')
