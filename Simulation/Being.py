@@ -197,11 +197,11 @@ class Human(Being):
                 break
                 
     def detectZ(self):
-        if len(self.Zproximity())>=10:
+        if len(self.zProximity())>=10:
             self.knowing=True
             self.stress=90
         else:
-            for x in self.Zproximity():
+            for x in self.zProximity():
                 if x.fighting==True:
                     self.knowing=True
                     self.stress=90
