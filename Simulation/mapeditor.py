@@ -54,8 +54,10 @@ class Map_editor(Tk):
         self.frame0 = Frame(self)
         self.xLabel = Label(self.frame0,text="Nb de case en largeur:")
         self.xEntry = Entry(self.frame0)
+        self.xEntry.insert(0,'200')
         self.yLabel = Label(self.frame0,text="Nb de case en longueur:")
         self.yEntry = Entry(self.frame0)
+        self.yEntry.insert(0,'300')
         self.goBut = Button(self.frame0,text="Okay",command=self.setDim)
         
         self.frame1 = Frame(self)
@@ -77,6 +79,10 @@ class Map_editor(Tk):
         self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
         self.selectbati_button= Button(self.frame3,text='Carte au clic',command=self.loadbis)
         self.onclicput_button= Button(self.frame3,text='Mettre au clic',command=lambda: self.setclic('cp'))
+        
+        self.frame4 = Frame(self)
+        self.nBatiLabel = Label(self.frame4,text='------------------ \n numero du batiment:0')
+        self.remBatiBut = Button(self.frame4,text='enlever dernier batiment',command=self.cancelBati)
 
         #Layout
         self.frame0.grid(row=0,column=1)
@@ -108,6 +114,21 @@ class Map_editor(Tk):
         self.onclicput_button.grid(row=9,column=0)
 
         
+        self.frame4.grid(row=4,column=1)
+        self.nBatiLabel.grid(row=0,column=0)
+        self.remBatiBut.grid(row=1,column=0)
+        
+    def cancelBati(self):
+        if self.nbati>1:
+            for i in range(self.x_size):
+                for j in range(self.y_size):
+                    if self.grid[i][j][0]==self.nbati-1:
+                        self.grid[i][j]=[0,0,0]
+                        self.color(i,j,'white')
+            self.batiments.pop()
+            self.nbati=len(self.batiments)+1
+            self.nBatiLabel.config(text='------------------ \n numero du batiment:'+str(self.nbati))
+        
     def setDim(self):
         self.x_size=int(self.xEntry.get())    # In cells
         self.y_size=int(self.yEntry.get())    # In cells
@@ -134,11 +155,11 @@ class Map_editor(Tk):
                 self.add_line(self.firstcase[0],self.firstcase[1],ny,nx)
                 self.nclic-=1
         elif self.onclic == 'b':
-            if self.nclic == 1 and self.isInBati(nx,ny) == -1:
+            if self.nclic == 1 and self.isInBati(ny,nx) == -1:
                 self.firstcase = (ny,nx)
                 self.color(ny,nx,"grey")
                 self.nclic+=1
-            elif self.nclic == 2 and self.isInBati(nx,ny) == -1:
+            elif self.nclic == 2 and self.isInBati(ny,nx) == -1:
                 self.add_build(self.firstcase[0],self.firstcase[1],ny,nx)
                 self.nclic+=1
             else:
@@ -160,7 +181,6 @@ class Map_editor(Tk):
         elif self.onclic == 'clb':
             self.grid[ny][nx][2]=0
             self.color(ny,nx,'white')
-        
         elif self.onclic == 'cp':
             for i in range (len(self.grid_temp)):
                 for j in range (len(self.grid_temp[0])):
@@ -190,9 +210,13 @@ class Map_editor(Tk):
                 nxx=i[0]+nx
                 nyy=i[1]+ny
                 self.batiments[-1][3].append((nxx,nyy))
+
     def rclic(self,event):
-        self.nclic = 1
-        self.nbati += 1
+        if self.nclic != 1:
+            self.nclic = 1
+            if self.onclic == 'b':
+                self.nbati = len(self.batiments)+1
+                self.nBatiLabel.config(text='------------------ \n numero du batiment:'+str(self.nbati))
 
     def add_line(self,nx1,ny1,nx2,ny2):
         L=line(nx1,ny1,nx2,ny2)
@@ -264,7 +288,6 @@ class Map_editor(Tk):
             self.grid=[lines[i].split(' ') for i in range(len(lines))]
             self.canvas.delete("all")
             self.canvas.config(width=self.ppc*len(self.grid[0]),height=self.ppc*len(self.grid))
-            self.nbati=1
             for i in range (len(self.grid)):
                 for j in range (len(self.grid[0])):
                     self.grid[i][j]=self.grid[i][j].split('/')
@@ -279,19 +302,23 @@ class Map_editor(Tk):
                     elif self.grid[i][j][2]==4:
                         self.color(i,j,'green')
             batims=batis.split(' ')
+            self.batiments=[]
             for b in batims:
                 l=b.split("/")
                 xy=l[0].split("-")
                 [x1,y1],[x2,y2]=xy[0].split("_"),xy[1].split("_")
                 nf,nr=l[1],l[2]
-                doors=l[3].split("-")
                 ld=[] #list of doors
-                for d in doors:
-                    [x,y]=d.split("_")
-                    ld.append((int(x),int(y)))
+                if len(l)>3:
+                    doors=l[3].split("-")
+                    for d in doors:
+                        [x,y]=d.split("_")
+                        ld.append((int(x),int(y)))
                 self.batiments.append([[int(x1),int(y1),int(x2),int(y2)],int(nf),int(nr),ld])
+            self.nbati=len(self.batiments)+1
+            self.nBatiLabel.config(text='------------------ \n numero du batiment:'+str(self.nbati))
         except:
-            pass
+            print('coucou')
 
     def clear(self):
         self.grid=[[[0,0,0] for _ in range (self.y_size)] for _ in range (self.x_size)]
