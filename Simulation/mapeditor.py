@@ -48,17 +48,25 @@ class Map_editor(Tk):
         # Each cell is [x,y,z] where y is noise level and z is wall/not wall
 
         #Canvas
-        self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
-        self.canvas.grid(row=0,column=0,rowspan=10)
+        self.canvas = 0
 
         #Save/Open
+        self.frame0 = Frame(self)
+        self.xLabel = Label(self.frame0,text="Nb de case en largeur:")
+        self.xEntry = Entry(self.frame0)
+        self.yLabel = Label(self.frame0,text="Nb de case en longueur:")
+        self.yEntry = Entry(self.frame0)
+        self.goBut = Button(self.frame0,text="Okay",command=self.setDim)
+        
         self.frame1 = Frame(self)
         self.filename_label = Label(self.frame1,text='Nom de la carte (no file extension)')
         self.filename_entry = Entry(self.frame1)
+        
         self.frame2 = Frame(self)
         self.finish_button = Button(self.frame2,text='Sauvegarder',command=self.finish)
         self.open_button = Button(self.frame2,text='Ouvrir',command=self.load)
         self.clear_button = Button(self.frame2,text='Nettoyer',command=self.clear)
+        
         self.frame3 = Frame(self)
         self.onclic_label = Label(self.frame3,text='Cliquer pour ajouter un mur')
         self.onclicwall_button = Button(self.frame3,text='Mur au clic',command=lambda: self.setclic('w'))
@@ -69,16 +77,23 @@ class Map_editor(Tk):
         self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
 
         #Layout
-        self.frame1.grid(row=0,column=1)
+        self.frame0.grid(row=0,column=1)
+        self.xLabel.grid(row=0,column=0)
+        self.xEntry.grid(row=0,column=1)
+        self.yLabel.grid(row=1,column=0)
+        self.yEntry.grid(row=1,column=1)
+        self.goBut.grid(row=2,column=0,columnspan=2)
+        
+        self.frame1.grid(row=1,column=1)
         self.filename_label.grid(row=0,column=0)
         self.filename_entry.grid(row=1,column=0)
 
-        self.frame2.grid(row=1,column=1)
+        self.frame2.grid(row=2,column=1)
         self.finish_button.grid(row=0,column=0)
         self.open_button.grid(row=1,column=0)
         self.clear_button.grid(row=2,column=0)
 
-        self.frame3.grid(row=2,column=1)
+        self.frame3.grid(row=3,column=1)
         Label(self.frame3,text='------').grid(row=0,column=0)
         self.onclic_label.grid(row=1,column=0)
         self.onclicwall_button.grid(row=2,column=0)
@@ -87,7 +102,15 @@ class Map_editor(Tk):
         self.onclicfood_button.grid(row=5,column=0)
         self.onclicrest_button.grid(row=6,column=0)
         self.onclicclear_button.grid(row=7,column=0)
-
+        
+    def setDim(self):
+        self.x_size=int(self.xEntry.get())    # In cells
+        self.y_size=int(self.yEntry.get())    # In cells
+        self.grid=[[[0,0,0] for _ in range (self.y_size)] for _ in range (self.x_size)]
+        self.ppc=int(min((self.winfo_screenwidth()-300)/self.y_size,self.winfo_screenheight()/self.x_size))
+        self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
+        self.canvas.grid(row=0,column=0,rowspan=10)
+        
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
         self.canvas.bind('<Button-3>',self.rclic)
@@ -165,7 +188,7 @@ class Map_editor(Tk):
             self.add_wallinbati(min(nx1,nx2),ny)
             self.add_wallinbati(max(nx1,nx2),ny)
         self.batiments.append([[nx1,ny1,nx2,ny2],0,0,[]])
-
+        
     def isInBati(self,x,y):
         for i in range(len(self.batiments)):
             [l,a,b,c]=self.batiments[i]
@@ -222,7 +245,17 @@ class Map_editor(Tk):
                     elif self.grid[i][j][2]==4:
                         self.color(i,j,'green')
             batims=batis.split(' ')
-            self.batiments=[b.split('/') for b in batims]
+            for b in batims:
+                l=b.split("/")
+                xy=l[0].split("-")
+                [x1,y1],[x2,y2]=xy[0].split("_"),xy[1].split("_")
+                nf,nr=l[1],l[2]
+                doors=l[3].split("-")
+                ld=[] #list of doors
+                for d in doors:
+                    [x,y]=d.split("_")
+                    ld.append((int(x),int(y)))
+                self.batiments.append([[int(x1),int(y1),int(x2),int(y2)],int(nf),int(nr),ld])
         except:
             pass
 
