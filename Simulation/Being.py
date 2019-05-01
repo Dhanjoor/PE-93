@@ -428,14 +428,16 @@ class Human(Being):
                 #Hstrength+=H.strength                                     #fight system: uniform law.
                 H.fighting=True
                 H.speed=[0,0]
-                L=Hstrength/(2*(Zstrength+Hstrength))
-            else:
-                L=Zstrength/(2*(Zstrength+Hstrength))
-        if Hstrength/(Zstrength+Hstrength)-uneVariable<=unSeuil:         #zombie(s) stronger than human
+        proba=random()
+        if Hstrenth<Zstrength:
+            L=Hstrength/(2*(Zstrength+Hstrength))
+        else:
+            L=Zstrength/(2*(Zstrength+Hstrength))
+        if Hstrength/(Zstrength+Hstrength)+L<=proba:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()
                 print("A zombie has joined the fight, the minions of hell grow stronger.")
-        elif Hstrength/(Zstrength+Hstrength)+uneVariable>=unSeuil:        #human stronger than zombie(s)
+        elif Hstrength/(Zstrength+Hstrength)-L>=proba:        #human stronger than zombie(s)
             for Z in Zbattle:
                 Z.death()
                 print("A zombie has been defeated, the minions of hell grow weaker.")
