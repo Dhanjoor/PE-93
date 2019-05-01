@@ -1,8 +1,10 @@
 from Parameters import *
 import numpy as np
-from math import atan
+from math import atan, acos, floor
+from random import random
 
-def nearestIndex(L,x,y,self):
+def nearestIndex(self,L): #return closest being in list L from self
+    x,y=self.position
     cible=-1
     dMin=xSize+ySize
     for i in range(len(L)):
@@ -14,10 +16,59 @@ def nearestIndex(L,x,y,self):
                 dMin=d
     return(cible)
 
+def cellsOnLine(x1,y1,x2,y2): #return the list of the cells between 2 points
+    if x1>x2:
+        x1,y1,x2,y2=x2,y2,x1,y1 #x1<=x2
+
+    if floor(x1)==floor(x2):
+        ym,yM=min(y1,y2), max(y1,y2)
+        return([(floor(x1),y) for y in range(floor(ym),floor(yM)+(1-(yM%1==0)))])
+    if y1==y2:
+        return([(x,floor(y1)) for x in range(floor(x1),floor(x2)+1-(x2%1==0))])
+
+    reverse=False
+    if y1>y2:
+        reverse=True
+        y2=2*y1-y2 #x1<x2 and y1<y2
+
+    L=[(floor(x1),floor(y1))]
+
+    a=(y2-y1)/(x2-x1) #y=ax +y1
+    x,y=x1,y1
+
+    if x2%1==0:
+        cond1=lambda x: abs(x-x2)>10**-10 and floor(x)!=floor(x2)
+    else:
+        cond1=lambda x: floor(x)!=floor(x2)
+
+    if y2%1==0:
+        cond2=lambda y: abs(y-y2)>10**-10 and floor(y)!=floor(y2)
+    else:
+        cond2=lambda y: floor(y)!=floor(y2)
+
+    while cond1(x) or cond2(y):
+       xNew=floor(x)+1
+       yNew=y+a*(xNew-x)
+       if yNew<floor(y)+1: #we didnt cross the top frontier of the cell
+           x,y=xNew,yNew
+           L.append((xNew,floor(y)))
+       else: #we crossed the top frontier of the cell
+           yNew=floor(y)+1
+           xNew=x+(yNew-y)/a
+           x,y=xNew,yNew
+           L.append((floor(xNew),y))
+
+    if reverse:
+        L=[(x,2*int(y1)-y-1) for x,y in L]
+    if x2%1==0 or y2%1==0:
+        L.pop()
+    return(L)
+    #return([(int(x),int(y)) for x,y in L])
+
 class Being:
     def __init__(self,Master,position,maxspeed,vision,hearing,strength,agility):
         self.Master=Master
-        self.position=position      # (x,y) for position in pixels
+        self.position=position      # [x,y] for position in pixels
         self.cell=[int(position[0]),int(position[1])]                  # The cell the being is in
         self.speed=[0,0]                # vx and vy speeds in direction x and y
         self.vision=vision              #vision distance
@@ -33,8 +84,7 @@ class Being:
             x=self.position[0]+t*self.speed[0]*self.maxspeed                 #new position of the being
             y=self.position[1]+t*self.speed[1]*self.maxspeed
             if x>=0 and x<xSize and y>=0 and y<ySize and not(self.Master.Map[int(x)][int(y)].content in [1,2]):
-                self.position[0]=x
-                self.position[1]=y
+                self.position=[x,y]
                 self.cell=[int(x),int(y)]
                 if volume>0:
                     self.Master.genSound(self.cell[0], self.cell[1], volume)
@@ -43,19 +93,72 @@ class Being:
 
     def zProximity(self):
         x,y=self.position
+        vx,vy=self.speed
         L=[]
         for Z in self.Master.Zombies:
-            if Z!=self and abs(Z.position[0]-x)+abs(Z.position[1]-y)<=dInteraction:
+            xz,yz=Z.position
+            u,v=xz-x,yz-y
+            if u==0 and v==0:
                 L.append(Z)
+            #elif ((x-xz)**2+(y-yz)**2)**0.5<=self.vision and ((vx==0 and vy==0) or abs(acos((vx*u+vy*v)/((vx**2+vy**2)*(u**2+v**2))**0.5))<=visionAngle/2):
+            elif ((x-xz)**2+(y-yz)**2)**0.5<=self.vision:
+                cells=cellsOnLine(x,y,xz,yz)
+                visible=True
+                for xc,yc in cells:
+                    if self.Master.Map[xc][yc].content in [1,2]:
+                        visible=False
+                        break
+                if visible:
+                    L.append(Z)
         return(L)
 
     def hProximity(self):
         x,y=self.position
         L=[]
         for H in self.Master.Humans:
-            if H!=self and abs(H.position[0]-x)+abs(H.position[1]-y)<=dInteraction:
+            xh,yh=H.position
+            u,v=xh-x,yh-y
+            if u==0 and v==0:
+                L.append(H)
+            elif ((x-xh)**2+(y-yh)**2)**0.5<=self.vision:
+                cells=cellsOnLine(x,y,xh,yh)
+                visible=True
+                for xc,yc in cells:
+                    if self.Master.Map[xc][yc].content in [1,2]:
+                        visible=False
+                        break
+                if visible:
+                    L.append(H)
+        return(L)
+
+    def hInSight(self):
+        x,y=self.position
+        vx,vy=self.speed
+        proxi=self.hProximity()
+        L=[]
+        for H in proxi:
+            xh,yh=H.position
+            ux,uy=xh-x,yh-y
+            if (ux==0 and uy==0) or (vx==0 and vy==0):
+                L.append(H)
+            elif (vx*ux+vy*uy)/((vx**2+vy**2)*(ux**2+uy**2))**0.5>=cosVisionAngle:
                 L.append(H)
         return(L)
+
+    def zInSight(self):
+        x,y=self.position
+        vx,vy=self.speed
+        proxi=self.zProximity()
+        L=[]
+        for Z in proxi:
+            xz,yz=Z.position
+            ux,uy=xz-x,yz-y
+            if (ux==0 and uy==0) or (vx==0 and vy==0):
+                L.append(Z)
+            elif (vx*ux+vy*uy)/((vx**2+vy**2)*(ux**2+uy**2))**0.5>=cosVisionAngle:
+                L.append(Z)
+        return(L)
+
 
     def detectSound(self):
         x,y=self.cell
@@ -88,8 +191,10 @@ class Zombie(Being):
         self.lifespan=zLifespan
 
     def info(self):
-        x,y=self.cell
+        x,y=self.position
+        vx,vy=self.speed
         print("Race: Zombie, case: x={}, y={}".format(x,y))
+        print("vx={}, vy={}".format(vx,vy))
 
     def addLifespan(self, s):
         self.lifespan+=s
@@ -98,9 +203,9 @@ class Zombie(Being):
 
     def action(self):
         x,y=self.position
-        hVision=self.hProximity()
 
-        cible=nearestIndex(hVision,x,y,self)
+        hVision=self.hInSight()
+        cible=nearestIndex(self,hVision)
         if cible!=-1:
             xh,yh=hVision[cible].position
             r=((x-xh)**2+(y-yh)**2)**0.5
@@ -120,8 +225,8 @@ class Zombie(Being):
             self.move(dt,0)
             return("sound heard")
 
-        zVision=self.zProximity()
-        cible=nearestIndex(zVision,x,y,self)
+        zVision=self.zInSight()
+        cible=nearestIndex(self, zVision)
         if cible!=-1:
             xz,yz=zVision[cible].position
             r=((x-xz)**2+(y-yz)**2)**0.5
@@ -145,28 +250,28 @@ class Human(Being):
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
-        self.hunger=864000                  #hunger (decrease by time) 0=death
-        self.energy=259200                  #energy (decrease by time) 0=death
+        self.hunger=100                  #hunger (decrease by time) 0=death
+        self.energy=100                  #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
-        self.aware=False                  #aware of the zombie invasion
+        self.knowing=False                  #knowing the zombie invasion
         self.group=None                #define the social group of the human
 
     def info(self):
-        x,y=self.cell
+        x,y=self.position
         print("Race: Humain, case: x={}, y={}".format(x,y))
 
     def addEnergy(self,e):
         if self.energy+e<0:
             self.death()
         else:
-            self.energy=min(259200,self.energy+e)
+            self.energy=min(100,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
             self.death()
         else:
-            self.hunger=min(864000,self.hunger+h)
+            self.hunger=min(100,self.hunger+h)
 
     def setGroup(self,newGroup):
         if self.group !=None:
@@ -176,67 +281,34 @@ class Human(Being):
 
     def action(self):
         self.fighting=False
-        if not self.aware:
+        if not self.knowing:
             self.detectZ()
-#        if len(self.zInSight())!=0:
-#            self.stop=0
-#            d=self.vision
-#            T=None
-#            for z in self.zInSight():
-#                if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2):
-#                    T=z
-#                    d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2)
-#            if self.behavior=="fight":
-#                vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
-#                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
-#            else:
-#                vx,vy=self.position[0]-T.position[0],self.position[1]-T.position[1]
-#                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
-#            if self.stamina!=0:
-#                self.speed=[vx,vy]
-#            else:
-#                self.speed=[vx/2,vy/2]
+
         elif self.stress>90:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
-        elif self.hunger<10:
-            p=self.pathfinding("food")
-        elif self.energy<50:
-            p=self.pathfinding("rest")
-        elif self.Master.map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
-            self.stop+=600*dt
-        elif self.Master.map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
-            self.stop+=21600*dt
-        elif self.Master.map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
-            self.speed=[0,0]
-        else:
-            sx,sy=random(),random()
-            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
-            d=self.maxspeed/5
-            sx,sy=d*sx,d*sy
-        self.addEnergy(-1*dt)
-        self.addHunger(-1*dt)
-        if self.Master.map[self.cell[0]][self.cell[1]].content==3:
-            self.addHunger(1440*dt)
-        if self.Master.map[self.cell[0]][self.cell[1]].content==4:
-            self.addEnergy(12*dt)
+#        elif self.hunger<10:
+#           pass
+#            action=manger
+#        else:
+#            pass
+#            action=Normal
         for z in self.Master.Zombies:
             if z.cell==self.cell:
                 self.fight()
                 break
-        self.move(dt,0)
 
     def detectZ(self):
         if len(self.zProximity())>=10:
-            self.aware=True
+            self.knowing=True
             self.stress=90
         else:
             for x in self.zProximity():
                 if x.fighting==True:
-                    self.aware=True
+                    self.knowing=True
                     self.stress=90
                     break
 
@@ -245,14 +317,16 @@ class Human(Being):
 
     def zombification(self):
         #time.sleep(zIncubationTime*dt)                #waiting for the human to turn into a zombie
-        self.Master.Zombies.append(Zombie(self.Master,self.position))             #creating a new zombie
+        x,y=self.cell
+        dx,dy=random(),random()
+        self.Master.Zombies.append(Zombie(self.Master,[x+dx, y+dy]))             #creating a new zombie
         self.death()
 
     def pathfinding(self,ressource):
         distance=xSize+ySize
         xd,yd=-1,-1
         for bati in self.Master.Buildings:
-            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
+            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0):
                 for door in bati.doors:
                     if ((door[0]-self.position[0])^2+(door[1]-self.position[1])^2)^0.5<distance:
                         xd,yd=door[0],door[1]    # xd,yd position of door
@@ -309,7 +383,8 @@ class Human(Being):
         for Z in self.zProximity():
             Zbattle.append(Z)
             Z.fighting=True
-            Zstrength+=Z.strength
+            Z.speed=[0,0]
+            Zstrength+=Z.strength*10000
         Hstrength=self.strength
         Hbattle=[self]
         self.fighting=True
@@ -318,6 +393,7 @@ class Human(Being):
                 #Hbattle.append(H)
                 #Hstrength+=H.strength                                     #fight system: uniform law.
                 H.fighting=True
+                H.speed=[0,0]
                 L=Hstrength/(2*(Zstrength+Hstrength))
             else:
                 L=Zstrength/(2*(Zstrength+Hstrength))

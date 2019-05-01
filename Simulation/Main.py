@@ -78,7 +78,7 @@ for i in range(xSize):
         Master.Map[i][j].idBuilding=int(cell[0])
         Master.Map[i][j].sound=int(cell[1])
         Master.Map[i][j].content=int(cell[2])
-        
+
 buildings=lines[-1].split()
 for b in buildings:
     elements=b.split("/")
@@ -113,7 +113,7 @@ with open(journalTxt,"w") as f:
 
 while Master.Turn<=Tsimulation:
 
-    #print("======== Tour {} ========".format(t))
+    #print("======== Tour {} ========".format(Master.Turn))
 
     nh=len(Master.Humans)-1
     while nh>=0:
@@ -132,6 +132,7 @@ while Master.Turn<=Tsimulation:
             continue
         z=Master.Zombies[nz]
         z.action()
+        #z.info()
         nz-=1
     #print()
 
