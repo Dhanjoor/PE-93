@@ -250,13 +250,14 @@ class Human(Being):
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
-        self.hunger=100                  #hunger (decrease by time) 0=death
-        self.energy=100                  #energy (decrease by time) 0=death
+        self.hunger=864000                  #hunger (decrease by time) 0=death
+        self.energy=259200                  #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
-        self.knowing=False                  #knowing the zombie invasion
+        self.aware=False                  #aware the zombie invasion
         self.group=None                #define the social group of the human
-
+        self.path=[]
+        
     def info(self):
         x,y=self.position
         print("Race: Humain, case: x={}, y={}".format(x,y))
@@ -265,13 +266,13 @@ class Human(Being):
         if self.energy+e<0:
             self.death()
         else:
-            self.energy=min(100,self.energy+e)
+            self.energy=min(259200,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
             self.death()
         else:
-            self.hunger=min(100,self.hunger+h)
+            self.hunger=min(864000,self.hunger+h)
 
     def setGroup(self,newGroup):
         if self.group !=None:
@@ -281,34 +282,67 @@ class Human(Being):
 
     def action(self):
         self.fighting=False
-        if not self.knowing:
+        if not self.aware:
             self.detectZ()
-
+        if len(self.zInSight())!=0:
+            self.stop=0
+            d=self.vision
+            T=None
+            for z in self.zInSight():
+                if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2):
+                    T=z
+                    d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2)
+            if self.behavior=="fight":
+                vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
+                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+            else:
+                vx,vy=self.position[0]-T.position[0],self.position[1]-T.position[1]
+                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+            if self.stamina!=0:
+                self.speed=[vx,vy]
+            else:
+                self.speed=[vx/2,vy/2]
         elif self.stress>90:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
-#        elif self.hunger<10:
-#           pass
-#            action=manger
-#        else:
-#            pass
-#            action=Normal
+        elif self.hunger<10:
+            p=self.pathfinding("food")
+        elif self.energy<50:
+            p=self.pathfinding("rest")
+        elif self.Master.map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
+            self.stop+=600*dt
+        elif self.Master.map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
+            self.stop+=21600*dt
+        elif self.Master.map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
+            self.speed=[0,0]
+        else:
+            sx,sy=random(),random()
+            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
+            d=self.maxspeed/5
+            sx,sy=d*sx,d*sy
+        self.addEnergy(-1*dt)
+        self.addHunger(-1*dt)
+        if self.Master.map[self.cell[0]][self.cell[1]].content==3:
+            self.addHunger(1440*dt)
+        if self.Master.map[self.cell[0]][self.cell[1]].content==4:
+            self.addEnergy(12*dt)
         for z in self.Master.Zombies:
             if z.cell==self.cell:
                 self.fight()
                 break
+        self.move(dt,0)
 
     def detectZ(self):
         if len(self.zProximity())>=10:
-            self.knowing=True
+            self.aware=True
             self.stress=90
         else:
             for x in self.zProximity():
                 if x.fighting==True:
-                    self.knowing=True
+                    self.aware=True
                     self.stress=90
                     break
 
@@ -384,7 +418,7 @@ class Human(Being):
             Zbattle.append(Z)
             Z.fighting=True
             Z.speed=[0,0]
-            Zstrength+=Z.strength*10000
+            Zstrength+=Z.strength
         Hstrength=self.strength
         Hbattle=[self]
         self.fighting=True
