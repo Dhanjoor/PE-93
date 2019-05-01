@@ -279,13 +279,29 @@ class Human(Being):
             self.Master.Groups[self.group].remove(self)
         self.group=newGroup
         self.Master.Groups[newGroup].append(self)
-
+    
+def followpath(self): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
+					  # and remove the cells reached in self.path
+	dist=self.maxspeed*dt/2
+	while dist>0:
+		nexttar=[self.path[0][0]+0.5,self.path[0][1]+0.5]
+		dToCell=((self.position[0]-nexttar[0])**2+(self.position[1]-nexttar[1])**2)**0.5 # distance to next cell
+		if dToCell > dist:
+			move=[(nexttar[0]-self.position[0])/dToCell*dist,(nexttar[1]-self.position[1])/dToCell*dist]
+			self.position=[self.position[0]+move[0],self.position[1]+move[1]]
+			dist=0
+		else:
+			self.position=nexttar
+			dist-=dToCell
+			self.path.pop(0)
+    
     def action(self):
         self.fighting=False
         if not self.aware:
             self.detectZ()
         if len(self.zInSight())!=0:
             self.stop=0
+            self.path=[]
             d=self.vision
             T=None
             for z in self.zInSight():
@@ -303,15 +319,20 @@ class Human(Being):
             else:
                 self.speed=[vx/2,vy/2]
         elif self.stress>90:
+            self.path=[]
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
         elif self.hunger<10:
-            p=self.pathfinding("food")
+            if self.path==[]:
+                p=self.pathfinding("food")
+            self.followpath()
         elif self.energy<50:
-            p=self.pathfinding("rest")
+            if self.path==[]:
+                p=self.pathfinding("rest")
+            self.followpath()
         elif self.Master.map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
             self.stop+=600*dt
         elif self.Master.map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
@@ -336,11 +357,11 @@ class Human(Being):
         self.move(dt,0)
 
     def detectZ(self):
-        if len(self.zProximity())>=10:
+        if len(self.zInSight())>=10:
             self.aware=True
             self.stress=90
         else:
-            for x in self.zProximity():
+            for x in self.zInSight():
                 if x.fighting==True:
                     self.aware=True
                     self.stress=90
