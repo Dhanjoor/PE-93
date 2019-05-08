@@ -283,7 +283,7 @@ class Human(Being):
     def followpath(self): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
                       # and remove the cells reached in self.path
         dist=self.maxspeed*dt/2
-        while dist>0:
+        while dist>0 and self.path:
             nexttar=[self.path[0][0]+0.5,self.path[0][1]+0.5]
             dToCell=((self.position[0]-nexttar[0])**2+(self.position[1]-nexttar[1])**2)**0.5 # distance to next cell
             if dToCell > dist:
@@ -292,12 +292,13 @@ class Human(Being):
                 dist=0
             else:
                 self.position=nexttar
+                self.cell=[int(self.position[0]), int(self.position[1])]
                 dist-=dToCell
                 self.path.pop(0)
 
     def action(self):
         self.fighting=False
-        if not self.aware:
+        if not(self.aware):
             self.detectZ()
         zVision=self.zInSight()
         if zVision:
@@ -329,16 +330,20 @@ class Human(Being):
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
+
+        #manger
         elif self.hunger<10000000000000:
             if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
-                p=self.pathfinding("food")
+                self.path=self.pathfinding("food")
             if self.path:
                 self.followpath()
+                self.stop+=1
         elif self.energy<50:
             if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
-                p=self.pathfinding("rest")
+                self.path=self.pathfinding("rest")
             if self.path:
                 self.followpath()
+                self.stop+=1
         elif self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
             self.stop+=600*dt
         elif self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
@@ -389,10 +394,12 @@ class Human(Being):
         for bati in self.Master.Buildings:
             if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
                 for door in bati.doors:
-                    if ((door[0]-self.position[0])**2+(door[1]-self.position[1])**2)**0.5<distance:
+                    r=((door[0]-self.position[0])**2+(door[1]-self.position[1])**2)**0.5
+                    if r<distance:
                         xd,yd=door[0],door[1]    # xd,yd position of door
+                        distance=r
         if (xd,yd)==(-1,-1):
-            return []
+            return([])
         # We create a table of cells that can be passed through
         m=max(xSize,ySize)**2
         access=[[m for _ in range(ySize)] for _ in range(xSize)]
@@ -433,9 +440,13 @@ class Human(Being):
                         path.append((x,y))
                         break
             path.reverse()
-            return path
-        else:
-            return ([])
+            for dx,dy in moves:
+                xnew,ynew=xd+dx,yd+dy
+                if self.Master.Map[xnew][ynew].idBuilding and not(self.Master.Map[xnew][ynew].content in [1,2]):
+                    path.append((xnew,ynew))
+                    break
+            return(path)
+        return([])
 
     def fight(self):
         self.Master.genSound(self.cell[0],self.cell[1], fightVolume)
