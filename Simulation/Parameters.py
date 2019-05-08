@@ -1,12 +1,12 @@
-mapTxt="Map/crossWall.txt"
+mapTxt="Map/comparatnew.txt"
 journalTxt="Journal/Journal.txt"
 with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
     xSize=len(lines)-1 #last line shows the buildings
     ySize=len(list(lines[0].split()))
 
-Tsimulation=1000
-dt=0.1
+Tsimulation=100
+dt=1
 attenuationPorte=3
 
 shoutVolume=0
@@ -20,7 +20,7 @@ dInteraction=20
 
 #Zombie parameters
 zSpeed=1
-zVision=1
+zVision=100
 zHearing=1
 zStrength=2
 zAgility=1
@@ -29,8 +29,9 @@ zIncubationTime=10
 zMaxspeed=1
 
 #Human parameters
-hVision=1
+hVision=100
 hHearing=1
+cosVisionAngle=0.5
 
 weak, casual, strong=(1,1,1), (2,2,2), (3,3,3) #maxspeed, strength, agility
 pAbilities=[1/4, 1/2, 1/4] #proba for general stats

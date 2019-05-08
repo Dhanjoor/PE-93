@@ -183,7 +183,7 @@ class Being:
             v+=self.Master.Map[x][y+1].sound
 
         return(u,v)
-        # sound in (x,y) and hearing aren't used
+        # sound in (x,y) not added
 
 class Zombie(Being):
     def __init__(self,Master,position):
@@ -250,14 +250,14 @@ class Human(Being):
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
-        self.hunger=864000                  #hunger (decrease by time) 0=death
-        self.energy=259200                  #energy (decrease by time) 0=death
+        self.hunger=864000.                  #hunger (decrease by time) 0=death
+        self.energy=259200.                  #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
         self.aware=False                  #aware the zombie invasion
         self.group=None                #define the social group of the human
         self.path=[]
-        
+
     def info(self):
         x,y=self.position
         print("Race: Humain, case: x={}, y={}".format(x,y))
@@ -266,54 +266,57 @@ class Human(Being):
         if self.energy+e<0:
             self.death()
         else:
-            self.energy=min(259200,self.energy+e)
+            self.energy=min(259200.,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
             self.death()
         else:
-            self.hunger=min(864000,self.hunger+h)
+            self.hunger=min(864000.,self.hunger+h)
 
     def setGroup(self,newGroup):
         if self.group !=None:
             self.Master.Groups[self.group].remove(self)
         self.group=newGroup
         self.Master.Groups[newGroup].append(self)
-    
-def followpath(self): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
-					  # and remove the cells reached in self.path
-	dist=self.maxspeed*dt/2
-	while dist>0:
-		nexttar=[self.path[0][0]+0.5,self.path[0][1]+0.5]
-		dToCell=((self.position[0]-nexttar[0])**2+(self.position[1]-nexttar[1])**2)**0.5 # distance to next cell
-		if dToCell > dist:
-			move=[(nexttar[0]-self.position[0])/dToCell*dist,(nexttar[1]-self.position[1])/dToCell*dist]
-			self.position=[self.position[0]+move[0],self.position[1]+move[1]]
-			dist=0
-		else:
-			self.position=nexttar
-			dist-=dToCell
-			self.path.pop(0)
-    
+
+    def followpath(self): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
+                      # and remove the cells reached in self.path
+        dist=self.maxspeed*dt/2
+        while dist>0:
+            nexttar=[self.path[0][0]+0.5,self.path[0][1]+0.5]
+            dToCell=((self.position[0]-nexttar[0])**2+(self.position[1]-nexttar[1])**2)**0.5 # distance to next cell
+            if dToCell > dist:
+                move=[(nexttar[0]-self.position[0])/dToCell*dist,(nexttar[1]-self.position[1])/dToCell*dist]
+                self.position=[self.position[0]+move[0],self.position[1]+move[1]]
+                dist=0
+            else:
+                self.position=nexttar
+                dist-=dToCell
+                self.path.pop(0)
+
     def action(self):
         self.fighting=False
         if not self.aware:
             self.detectZ()
-        if len(self.zInSight())!=0:
+        zVision=self.zInSight()
+        if zVision:
             self.stop=0
             self.path=[]
             d=self.vision
-            T=None
-            for z in self.zInSight():
+            T=None #T is target
+            for z in zVision:
                 if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2):
                     T=z
                     d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2)
             if self.behavior=="fight":
                 vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
-                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+                if vx!=0 or vy!=0:
+                    vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
             else:
                 vx,vy=self.position[0]-T.position[0],self.position[1]-T.position[1]
-                vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+                if vx!=0 or vy!=0:
+                    vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
             if self.stamina!=0:
                 self.speed=[vx,vy]
             else:
@@ -321,23 +324,26 @@ def followpath(self): # when called, move the human following self.path ( on a d
         elif self.stress>90:
             self.path=[]
             sx,sy=random(),random()
-            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
+            if sx!=0 or sy!=0:
+                sx,sy=sx/((sx**2+sy**2)**0.5),sy/((sx**2+sy**2)**0.5)
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
-        elif self.hunger<10:
-            if self.path==[]:
+        elif self.hunger<10000000000000:
+            if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
                 p=self.pathfinding("food")
-            self.followpath()
+            if self.path:
+                self.followpath()
         elif self.energy<50:
-            if self.path==[]:
+            if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
                 p=self.pathfinding("rest")
-            self.followpath()
-        elif self.Master.map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
+            if self.path:
+                self.followpath()
+        elif self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
             self.stop+=600*dt
-        elif self.Master.map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
+        elif self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
             self.stop+=21600*dt
-        elif self.Master.map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
+        elif self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
         else:
             sx,sy=random(),random()
@@ -346,9 +352,9 @@ def followpath(self): # when called, move the human following self.path ( on a d
             sx,sy=d*sx,d*sy
         self.addEnergy(-1*dt)
         self.addHunger(-1*dt)
-        if self.Master.map[self.cell[0]][self.cell[1]].content==3:
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==3:
             self.addHunger(1440*dt)
-        if self.Master.map[self.cell[0]][self.cell[1]].content==4:
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
             self.addEnergy(12*dt)
         for z in self.Master.Zombies:
             if z.cell==self.cell:
@@ -383,7 +389,7 @@ def followpath(self): # when called, move the human following self.path ( on a d
         for bati in self.Master.Buildings:
             if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
                 for door in bati.doors:
-                    if ((door[0]-self.position[0])^2+(door[1]-self.position[1])^2)^0.5<distance:
+                    if ((door[0]-self.position[0])**2+(door[1]-self.position[1])**2)**0.5<distance:
                         xd,yd=door[0],door[1]    # xd,yd position of door
         if (xd,yd)==(-1,-1):
             return []
@@ -393,15 +399,15 @@ def followpath(self): # when called, move the human following self.path ( on a d
         for i in range(xSize):
             for j in range(ySize):
                 if self.Master.Map[i][j].content:
-                    Access[i][j] = -1
+                    access[i][j] = -1
         for zombie in self.Master.Zombies :
             x,y=zombie.cell
-            Access[x][y] = -1
+            access[x][y] = -1
 
         # All possible Moves to a neighbor cell, list of cells to visit, final path
         moves=[(1,0),(0,1),(-1,0),(0,-1)]
-        toVisit=[(self.position[0],self.position[1])]
-        access[self.position[0]][self.position[1]]=0
+        toVisit=[(self.cell[0],self.cell[1])]
+        access[self.cell[0]][self.cell[1]]=0
 
         # BFS
         fini=False
@@ -450,7 +456,7 @@ def followpath(self): # when called, move the human following self.path ( on a d
                 H.fighting=True
                 H.speed=[0,0]
         proba=random()
-        if Hstrenth<Zstrength:
+        if Hstrength<Zstrength:
             L=Hstrength/(2*(Zstrength+Hstrength))
         else:
             L=Zstrength/(2*(Zstrength+Hstrength))

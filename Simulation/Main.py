@@ -113,7 +113,7 @@ with open(journalTxt,"w") as f:
 
 while Master.Turn<=Tsimulation:
 
-    #print("======== Tour {} ========".format(Master.Turn))
+    print("======== Tour {} ========".format(Master.Turn))
 
     nh=len(Master.Humans)-1
     while nh>=0:
