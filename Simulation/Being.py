@@ -257,7 +257,8 @@ class Human(Being):
         self.aware=False                  #aware the zombie invasion
         self.group=None                #define the social group of the human
         self.path=[]
-
+        self.flee=False
+        
     def info(self):
         x,y=self.position
         print("Race: Humain, case: x={}, y={}".format(x,y))
@@ -298,30 +299,36 @@ class Human(Being):
 
     def action(self):
         self.fighting=False
+        zVision=self.zInSight()
         if not(self.aware):
             self.detectZ()
-        zVision=self.zInSight()
-        if zVision:
-            self.stop=0
-            self.path=[]
+        elif self.flee and self.path:
+            self.followpath()
+            if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
+                self.flee=False
+        elif zVision:
+                self.stop=0
             d=self.vision
+            self.addStress()
             T=None #T is target
             for z in zVision:
                 if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2):
                     T=z
                     d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2)
             if self.behavior=="fight":
+                self.path=[]
                 vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
                 if vx!=0 or vy!=0:
                     vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
             else:
-                vx,vy=self.position[0]-T.position[0],self.position[1]-T.position[1]
-                if vx!=0 or vy!=0:
-                    vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+                self.path=self.pathfinding("shelter")
+                self.followpath()
+                if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
+                    self.flee=False
             if self.stamina!=0:
                 self.speed=[vx,vy]
             else:
-                self.speed=[vx/2,vy/2]
+                self.speed=[vx/4,vy/4]
         elif self.stress>90:
             self.path=[]
             sx,sy=random(),random()
@@ -332,13 +339,13 @@ class Human(Being):
             self.speed=[sx,sy]
 
         #manger
-        elif self.hunger<10000000000000:
+        elif self.hunger<86400.:
             if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
                 self.path=self.pathfinding("food")
             if self.path:
                 self.followpath()
                 self.stop+=1
-        elif self.energy<50:
+        elif self.energy<0.5*259200.:
             if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
                 self.path=self.pathfinding("rest")
             if self.path:
@@ -357,6 +364,7 @@ class Human(Being):
             sx,sy=d*sx,d*sy
         self.addEnergy(-1*dt)
         self.addHunger(-1*dt)
+        self.stress=self.stress-0.01*dt
         if self.Master.Map[self.cell[0]][self.cell[1]].content==3:
             self.addHunger(1440*dt)
         if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
@@ -367,6 +375,15 @@ class Human(Being):
                 break
         self.move(dt,0)
 
+    def addStress(self):
+        if self.coldblood=="zen":
+            self.stress+=1
+        elif self.coldblood=="normal":
+            self.stress+=5
+        else:
+            self.stress+=10
+    
+        
     def detectZ(self):
         if len(self.zInSight())>=10:
             self.aware=True
