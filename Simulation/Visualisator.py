@@ -2,6 +2,8 @@ from tkinter import *
 import numpy
 from Parameters import *
 
+
+
 class Visualisator(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -18,6 +20,7 @@ class Visualisator(Tk):
         self.batiments=[]
         self.humains=[]
         self.zombies=[]
+        self.vitesse_affichage=100
         # Each cell is [x,y,z] where y is noise level and z is wall/not wall
 
         # Load map
@@ -36,8 +39,12 @@ class Visualisator(Tk):
         self.ppc=int(min(self.winfo_screenwidth()/ySize,(self.winfo_screenheight()-300)/xSize))
         self.canvas = Canvas(self,width=ySize*self.ppc,height=xSize*self.ppc,bg='white')
         self.timer=Label(self,width=self.ppc,text="Coucou !",font=("Arial",20))
+        self.sheet1=Label(self,width=self.ppc,text="Humains ",font=("Arial",12))
+        self.sheet2=Label(self,width=self.ppc,text="Zombies ",font=("Arial",12))
         self.canvas.config(width=self.ppc*ySize,height=self.ppc*xSize)
         self.timer.grid(column=0)
+        self.sheet1.grid(column=0)
+        self.sheet2.grid(column=0)
         Button(self,text='Ça part',command=self.run).grid()
         self.canvas.grid(column=0)
         self.nbati=2
@@ -141,6 +148,8 @@ class Visualisator(Tk):
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
             self.timer.config(text="Tour "+str(t+1))
+            self.sheet1.config(text="Humains : {}".format(len(self.humains)))
+            self.sheet2.config(text="Zombies : {}".format(len(self.zombies)))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")
@@ -153,11 +162,10 @@ class Visualisator(Tk):
             for i in range(debut,fin):
                 sound=lines[i].split("/")
                 self.genSound(int(sound[0]),int(sound[1]),int(sound[2])) #inversion of x/y by Tkinter
-
             self.plotHumain(Lh)
             self.plotZombie(Lz)
             if t<len(turns)-1:
-                self.after(10,lambda: go(t+1))
+                self.after(self.vitesse_affichage,lambda: go(t+1))
         go(0)
 
 #Change the first value in self.after (line 162) to fix the time between each turn of the simulation
