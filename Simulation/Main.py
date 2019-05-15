@@ -85,6 +85,9 @@ for b in buildings:
     corners=elements[0].split("-")
     x1,y1=corners[0].split("_")
     x2,y2=corners[1].split("_")
+    for i in range(min(x1,x2), max(x1,x2)+1):
+        for j in range(min(y1,y2), max(y1,y2)+1):
+            Master.Map[i][j].idBuilding=idBuilding
     nFood, nRest=int(elements[1]), int(elements[2])
     building=Building(int(x1),int(y1),int(x2),int(y2),nFood,nRest,[])
     doors=elements[3].split("-")
