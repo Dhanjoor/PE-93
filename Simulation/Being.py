@@ -258,7 +258,7 @@ class Human(Being):
         self.group=None                #define the social group of the human
         self.path=[]
         self.flee=False
-        
+
     def info(self):
         x,y=self.position
         print("Race: Humain, case: x={}, y={}".format(x,y))
@@ -281,15 +281,19 @@ class Human(Being):
         self.group=newGroup
         self.Master.Groups[newGroup].append(self)
 
-    def followpath(self): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
+    def followpath(self, flee=False): # when called, move the human following self.path ( on a distance maxspeed*dt/2 ),
                       # and remove the cells reached in self.path
-        dist=self.maxspeed*dt/2
+        if flee:
+            dist=self.maxspeed*dt
+        else:
+            dist=self.maxspeed*dt/2
         while dist>0 and self.path:
             nexttar=[self.path[0][0]+0.5,self.path[0][1]+0.5]
             dToCell=((self.position[0]-nexttar[0])**2+(self.position[1]-nexttar[1])**2)**0.5 # distance to next cell
             if dToCell > dist:
                 move=[(nexttar[0]-self.position[0])/dToCell*dist,(nexttar[1]-self.position[1])/dToCell*dist]
                 self.position=[self.position[0]+move[0],self.position[1]+move[1]]
+                self.cell=[int(self.position[0]), int(self.position[1])]
                 dist=0
             else:
                 self.position=nexttar
@@ -382,8 +386,8 @@ class Human(Being):
             self.stress+=5
         else:
             self.stress+=10
-    
-        
+
+
     def detectZ(self):
         if len(self.zInSight())>=10:
             self.aware=True
@@ -406,13 +410,52 @@ class Human(Being):
         self.death()
 
     def pathfinding(self,ressource):
-        distance=xSize+ySize
+        x,y=self.cell
+        idBuilding=self.Master.Map[x][y].idBuilding
+
+        #If human is already in a building
+        if idBuilding!=0:
+            bati=self.Master.Buildings[idBuilding-1]
+            path=[]
+            xnew,ynew=x,y
+            #If ressource needed  is in current building
+            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
+                if ressource=="food" or ressource=="rest":
+                    if ressource=="food":
+                        ressource=3
+                    else:
+                        ressource=4
+                    x1,y1,x2,y2=bati.corners
+                    distance=xSize**2+ySize**2
+                    xr,yr=-1,-1
+                    for x in range(min(x1,x2)+1, max(x1,x2)):
+                        for y in range(min(y1,y2)+1, max(y1,y2)):
+                            if self.Master.Map[x][y].content==ressource and (x-xnew)**2+(y-ynew)**2<distance:
+                                xr,yr=x,y
+                                distance=(x-xnew)**2+(y-ynew)**2
+
+                elif ressource=="shelter":
+                    xr,yr=(x1+x2)//2, (y1+y2)//2
+
+                if ynew<yr:
+                    path.extend([(xnew, y) for y in range(ynew, yr+1)])
+                elif ynew>yr:
+                    path.extend([(xnew, y) for y in range(ynew, yr-1, -1)])
+                if xnew<xr:
+                    path.extend([(x, yr) for x in range(xnew, xr+1)])
+                elif xnew>xr:
+                    path.extend([(x, yr) for x in range(xnew, xr-1, -1)])
+
+                return(path)
+
+        distance=xSize**2+ySize**2
         xd,yd=-1,-1
         for bati in self.Master.Buildings:
             if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
                 for door in bati.doors:
-                    r=((door[0]-self.position[0])**2+(door[1]-self.position[1])**2)**0.5
+                    r=(door[0]-self.position[0])**2+(door[1]-self.position[1])**2
                     if r<distance:
+                        batiment=bati
                         xd,yd=door[0],door[1]    # xd,yd position of door
                         distance=r
         if (xd,yd)==(-1,-1):
@@ -422,7 +465,7 @@ class Human(Being):
         access=[[m for _ in range(ySize)] for _ in range(xSize)]
         for i in range(xSize):
             for j in range(ySize):
-                if self.Master.Map[i][j].content:
+                if self.Master.Map[i][j].content==1:
                     access[i][j] = -1
         for zombie in self.Master.Zombies :
             x,y=zombie.cell
@@ -435,7 +478,7 @@ class Human(Being):
 
         # BFS
         fini=False
-        while len(toVisit)>0 and not(fini):
+        while toVisit and not(fini):
             x,y=toVisit.pop()
             n=access[x][y]
             for dx,dy in moves:
@@ -457,12 +500,42 @@ class Human(Being):
                         path.append((x,y))
                         break
             path.reverse()
+
+            #Enter in the building
             for dx,dy in moves:
                 xnew,ynew=xd+dx,yd+dy
                 if self.Master.Map[xnew][ynew].idBuilding and not(self.Master.Map[xnew][ynew].content in [1,2]):
                     path.append((xnew,ynew))
                     break
+
+            #Move to the ressource if human insinde of building
+            if ressource=="food" or ressource=="rest":
+                if ressource=="food":
+                    ressource=3
+                else:
+                    ressource=4
+                x1,y1,x2,y2=batiment.corners
+                distance=xSize**2+ySize**2
+                xr,yr=-1,-1
+                for x in range(min(x1,x2)+1, max(x1,x2)):
+                    for y in range(min(y1,y2)+1, max(y1,y2)):
+                        if self.Master.Map[x][y].content==ressource and (x-xnew)**2+(y-ynew)**2<distance:
+                            xr,yr=x,y
+                            distance=(x-xnew)**2+(y-ynew)**2
+            elif ressource=="shelter":
+                xr,yr=(x1+x2)//2, (y1+y2)//2
+
+            if ynew<yr:
+                path.extend([(xnew, y) for y in range(ynew, yr+1)])
+            elif ynew>yr:
+                path.extend([(xnew, y) for y in range(ynew, yr-1, -1)])
+            if xnew<xr:
+                path.extend([(x, yr) for x in range(xnew, xr+1)])
+            elif xnew>xr:
+                path.extend([(x, yr) for x in range(xnew, xr-1, -1)])
+
             return(path)
+
         return([])
 
     def fight(self):
