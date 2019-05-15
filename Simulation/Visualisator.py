@@ -2,8 +2,6 @@ from tkinter import *
 import numpy
 from Parameters import *
 
-
-
 class Visualisator(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -45,7 +43,7 @@ class Visualisator(Tk):
         self.timer.grid(column=0)
         self.sheet1.grid(column=0)
         self.sheet2.grid(column=0)
-        Button(self,text='Ça part',command=self.run).grid()
+        self.button=Button(self,text='Ça part',command=self.run).grid()
         self.canvas.grid(column=0)
         self.nbati=2
         for i in range (xSize):
@@ -136,7 +134,6 @@ class Visualisator(Tk):
         with open(journalTxt,"r") as f:
             text=f.read()
         turns=text.split("***\n")
-
         def go(t):
             #reduce volume after a turn
             for x in range(xSize):
@@ -166,6 +163,8 @@ class Visualisator(Tk):
             self.plotZombie(Lz)
             if t<len(turns)-1:
                 self.after(self.vitesse_affichage,lambda: go(t+1))
+            else:
+                self.timer.config(text="C'est fini !")
         go(0)
 
 #Change the first value in self.after (line 162) to fix the time between each turn of the simulation
