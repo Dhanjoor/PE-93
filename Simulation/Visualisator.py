@@ -40,11 +40,18 @@ class Visualisator(Tk):
         self.sheet1=Label(self,width=self.ppc,text="Humains ",font=("Arial",12))
         self.sheet2=Label(self,width=self.ppc,text="Zombies ",font=("Arial",12))
         self.canvas.config(width=self.ppc*ySize,height=self.ppc*xSize)
+        self.label = Label(self, text = 'Vitesse de la simulation : ')
+        self.texte = Entry(self, bg ='bisque', fg='maroon')
+        self.texte.focus_set()
+        self.button2 = Button(self, text ='OK', command = lambda :self.changervitesse(self.texte))
         self.timer.grid(column=0)
         self.sheet1.grid(column=0)
         self.sheet2.grid(column=0)
         self.button=Button(self,text='Ça part',command=self.run).grid()
         self.canvas.grid(column=0)
+        self.label.grid(column=0)
+        self.texte.grid(column=0)
+        self.button2.grid(column=0)
         self.nbati=2
         for i in range (xSize):
             for j in range (ySize):
@@ -166,7 +173,9 @@ class Visualisator(Tk):
             else:
                 self.timer.config(text="C'est fini !")
         go(0)
-
+    def changervitesse(self,vitesse):
+        vitesse=int(str(vitesse.get()))
+        self.vitesse_affichage=vitesse
 #Change the first value in self.after (line 162) to fix the time between each turn of the simulation
 E=Visualisator()
 E.focus_force()
