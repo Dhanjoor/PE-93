@@ -311,7 +311,7 @@ class Human(Being):
             if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
                 self.flee=False
         elif zVision:
-                self.stop=0
+            self.stop=0
             d=self.vision
             self.addStress()
             T=None #T is target
@@ -413,40 +413,43 @@ class Human(Being):
         x,y=self.cell
         idBuilding=self.Master.Map[x][y].idBuilding
 
+        def moveInBuilding(self, ressource, batiment, path, xnew, ynew):
+            if ressource=="food" or ressource=="rest":
+                if ressource=="food":
+                    ressource=3
+                else:
+                    ressource=4
+                x1,y1,x2,y2=batiment.corners
+                distance=xSize+ySize
+                xr,yr=-1,-1
+                for x in range(min(x1,x2)+1, max(x1,x2)):
+                    for y in range(min(y1,y2)+1, max(y1,y2)):
+                        if self.Master.Map[x][y].content==ressource and (x-xnew)+(y-ynew)<distance:
+                            xr,yr=x,y
+                            distance=(x-xnew)+(y-ynew)
+
+            elif ressource=="shelter":
+                xr,yr=(x1+x2)//2, (y1+y2)//2
+
+            if ynew<yr:
+                path.extend([(xnew, y) for y in range(ynew, yr+1)])
+            elif ynew>yr:
+                path.extend([(xnew, y) for y in range(ynew, yr-1, -1)])
+            if xnew<xr:
+                path.extend([(x, yr) for x in range(xnew, xr+1)])
+            elif xnew>xr:
+                path.extend([(x, yr) for x in range(xnew, xr-1, -1)])
+
+            return(path)
+
         #If human is already in a building
         if idBuilding!=0:
-            bati=self.Master.Buildings[idBuilding-1]
+            batiment=self.Master.Buildings[idBuilding-1]
             path=[]
             xnew,ynew=x,y
             #If ressource needed  is in current building
-            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
-                if ressource=="food" or ressource=="rest":
-                    if ressource=="food":
-                        ressource=3
-                    else:
-                        ressource=4
-                    x1,y1,x2,y2=bati.corners
-                    distance=xSize**2+ySize**2
-                    xr,yr=-1,-1
-                    for x in range(min(x1,x2)+1, max(x1,x2)):
-                        for y in range(min(y1,y2)+1, max(y1,y2)):
-                            if self.Master.Map[x][y].content==ressource and (x-xnew)**2+(y-ynew)**2<distance:
-                                xr,yr=x,y
-                                distance=(x-xnew)**2+(y-ynew)**2
-
-                elif ressource=="shelter":
-                    xr,yr=(x1+x2)//2, (y1+y2)//2
-
-                if ynew<yr:
-                    path.extend([(xnew, y) for y in range(ynew, yr+1)])
-                elif ynew>yr:
-                    path.extend([(xnew, y) for y in range(ynew, yr-1, -1)])
-                if xnew<xr:
-                    path.extend([(x, yr) for x in range(xnew, xr+1)])
-                elif xnew>xr:
-                    path.extend([(x, yr) for x in range(xnew, xr-1, -1)])
-
-                return(path)
+            if (ressource == "food" and batiment.nFoodCells>0) or (ressource == "rest" and batiment.nRestCells>0) or ressource == "shelter":
+                return(moveInBuilding(self, ressource, batiment, path, xnew, ynew))
 
         distance=xSize**2+ySize**2
         xd,yd=-1,-1
@@ -461,7 +464,7 @@ class Human(Being):
         if (xd,yd)==(-1,-1):
             return([])
         # We create a table of cells that can be passed through
-        m=max(xSize,ySize)**2
+        m=xSize**2+ySize**2
         access=[[m for _ in range(ySize)] for _ in range(xSize)]
         for i in range(xSize):
             for j in range(ySize):
@@ -508,33 +511,8 @@ class Human(Being):
                     path.append((xnew,ynew))
                     break
 
-            #Move to the ressource if human insinde of building
-            if ressource=="food" or ressource=="rest":
-                if ressource=="food":
-                    ressource=3
-                else:
-                    ressource=4
-                x1,y1,x2,y2=batiment.corners
-                distance=xSize**2+ySize**2
-                xr,yr=-1,-1
-                for x in range(min(x1,x2)+1, max(x1,x2)):
-                    for y in range(min(y1,y2)+1, max(y1,y2)):
-                        if self.Master.Map[x][y].content==ressource and (x-xnew)**2+(y-ynew)**2<distance:
-                            xr,yr=x,y
-                            distance=(x-xnew)**2+(y-ynew)**2
-            elif ressource=="shelter":
-                xr,yr=(x1+x2)//2, (y1+y2)//2
-
-            if ynew<yr:
-                path.extend([(xnew, y) for y in range(ynew, yr+1)])
-            elif ynew>yr:
-                path.extend([(xnew, y) for y in range(ynew, yr-1, -1)])
-            if xnew<xr:
-                path.extend([(x, yr) for x in range(xnew, xr+1)])
-            elif xnew>xr:
-                path.extend([(x, yr) for x in range(xnew, xr-1, -1)])
-
-            return(path)
+            #Move to the ressource if human inside of building
+            return(moveInBuilding(self, ressource, batiment, path, xnew, ynew))
 
         return([])
 
