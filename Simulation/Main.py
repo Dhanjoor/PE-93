@@ -80,21 +80,23 @@ for i in range(xSize):
         Master.Map[i][j].content=int(cell[2])
 
 buildings=lines[-1].split()
+idBuilding=1
 for b in buildings:
     elements=b.split("/")
     corners=elements[0].split("-")
-    x1,y1=corners[0].split("_")
-    x2,y2=corners[1].split("_")
+    x1,y1=map(int, corners[0].split("_"))
+    x2,y2=map(int, corners[1].split("_"))
     for i in range(min(x1,x2), max(x1,x2)+1):
         for j in range(min(y1,y2), max(y1,y2)+1):
             Master.Map[i][j].idBuilding=idBuilding
     nFood, nRest=int(elements[1]), int(elements[2])
-    building=Building(int(x1),int(y1),int(x2),int(y2),nFood,nRest,[])
+    building=Building(x1,y1,x2,y2,nFood,nRest,[])
     doors=elements[3].split("-")
     for door in doors:
-        xd,yd=door.split("_")
-        building.doors.append((int(xd),int(yd)))
+        xd,yd=map(int, door.split("_"))
+        building.doors.append((xd,yd))
     Master.Buildings.append(building)
+    idBuilding+=1
 
 for _ in range(nZombies):
     Master.Zombies.append(createZombie(Master))
@@ -125,8 +127,8 @@ while Master.Turn<=Tsimulation:
             continue
         h=Master.Humans[nh]
         h.action()
+        h.info()
         nh-=1
-        #h.info()
     #print()
     nz=len(Master.Zombies)-1
     while nz>=0:
