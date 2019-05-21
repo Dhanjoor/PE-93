@@ -32,6 +32,9 @@ zMaxspeed=1
 hVision=100
 hHearing=1
 cosVisionAngle=0.5
+maxHunger=864000.
+maxEnergy=259200.
+
 
 weak, casual, strong=(1,1,1), (2,2,2), (3,3,3) #maxspeed, strength, agility
 pAbilities=[1/4, 1/2, 1/4] #proba for general stats
