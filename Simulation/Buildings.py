@@ -1,6 +1,6 @@
 class Building():
     def __init__(self,x1,y1,x2,y2,nFood,nRest,doors):
-        self.corners=[(x1,y1),(x2,y2)]
+        self.corners=[x1,y1,x2,y2]
         self.nFoodCells=nFood
         self.nRestCells=nRest
         self.doors=doors
