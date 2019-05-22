@@ -1,7 +1,7 @@
 from Parameters import *
 import numpy as np
 from math import atan, acos, floor
-from random import random, choice
+from random import random, choice, randint
 
 def nearestIndex(self,L): #return closest being in list L from self
     x,y=self.position
@@ -312,6 +312,9 @@ class Human(Being):
                 self.sleeping=False
                 self.stop=0
                 actionMade+="Wake up, "
+                self.Master.Map[self.cell[0]][self.cell[1]].content=4
+                idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
+                self.Master.Buildings[idBuilding-1].nRestCells+=1
             else:
                 actionMade+="Sleep, "
                 return(actionMade)
@@ -362,7 +365,7 @@ class Human(Being):
             self.speed=[sx,sy]
             actionMade+="Stressed, "
 
-        elif self.hunger<1000000000 and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
+        elif self.hunger<maxHunger/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
             actionMade+="FindFood"
             if not(self.path):
                 self.path=self.pathfinding("food")
@@ -372,8 +375,18 @@ class Human(Being):
                 self.followpath()
                 actionMade+="-Followpath"
             actionMade+=", "
-
-        elif self.energy<0.5*259200 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
+            
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger:
+            self.addHunger(1440)
+            actionMade+="Eat, "
+            self.eating=True
+            self.Master.Map[self.cell[0]][self.cell[1]].content=0 
+            idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
+            self.Master.Buildings[idBuilding-1].nFoodCells-=1
+        else:
+            self.eating=False
+            
+        if self.energy<maxEnergy/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
             actionMade+="FindRest"
             if not(self.path):
                 self.path=self.pathfinding("rest")
@@ -383,18 +396,39 @@ class Human(Being):
                 actionMade+="-Followpath"
             actionMade+=", "
 
+        if  self.energy<6000000 and self.stress<90:
+            if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
+                self.sleeping=True
+                actionMade+="Start sleeping, "
+                self.Master.Map[self.cell[0]][self.cell[1]].content=5
+                idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
+                self.Master.Buildings[idBuilding-1].nRestCells-=1
+            elif self.Master.Map[self.cell[0]][self.cell[1]].content==5:
+                print("putain")
+                actionMade+="FindRest"
+                if not(self.path):
+                    self.path=self.pathfinding("rest")
+                    actionMade+="-Pathfinding"
+                if self.path:
+                    self.followpath()
+                    actionMade+="-Followpath"
+                actionMade+=", "
+        
         elif self.aware and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
             actionMade+="Hide, "
 
-        elif self.aware:
+        if actionMade=="" and self.path:
+            self.followpath()
+            
+        if actionMade=="" and self.aware:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed/5
             sx,sy=d*sx,d*sy
             actionMade+="RandomAware, "
 
-        elif not(self.aware) and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
+        if not(self.aware) and actionMade=="" and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
             self.pathfinding("shelter")
             self.followpath()
             actionMade+="RandomNotAware, "
@@ -403,18 +437,6 @@ class Human(Being):
         self.addHunger(-1*dt)
         self.stress=self.stress-0.01*dt
 
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<10000000:
-            self.addHunger(1440)
-            actionMade+="Eat, "
-            self.eating=True
-            self.Master.Map[self.cell[0]][self.cell[1]].content=0 
-        else:
-            self.eating=False
-
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.energy<60 and self.stress>90:
-            self.sleeping=True
-            actionMade+="Start sleeping, "
-
         if self.aware:
             for z in self.Master.Zombies:
                 if z.cell==self.cell:
@@ -422,7 +444,7 @@ class Human(Being):
                     actionMade+="Fight, "
                     break
 
-        if not(self.sleeping or self.eating):
+        if not(self.sleeping or self.eating) and self.speed!=[0,0]:
             self.move(dt,0)
             actionMade+="Move."
         return(actionMade)
@@ -464,24 +486,24 @@ class Human(Being):
         idBuilding=self.Master.Map[x][y].idBuilding
 
         def moveInBuilding(self, ressource, batiment, path, xnew, ynew):
+            x1,y1,x2,y2=batiment.corners
+            distance=xSize+ySize
             if ressource=="food" or ressource=="rest":
                 if ressource=="food":
                     ressource=3
                 else:
                     ressource=4
-                x1,y1,x2,y2=batiment.corners
-                distance=xSize+ySize
                 xr,yr=-1,-1
                 for x in range(min(x1,x2)+1, max(x1,x2)):
                     for y in range(min(y1,y2)+1, max(y1,y2)):
                         if self.Master.Map[x][y].content==ressource and abs((x-xnew))+abs((y-ynew))<distance:
                             xr,yr=x,y
                             distance=abs((xr-xnew))+abs((yr-ynew))
-            if xr==-1 and yr==-1:
-                return([])
+            
             elif ressource=="shelter":
                 xr,yr=(x1+x2)//2, (y1+y2)//2
-
+            if xr==-1 and yr==-1:
+                return([])
             if ynew<yr:
                 path.extend([(xnew, y) for y in range(ynew, yr+1)])
             elif ynew>yr:
@@ -509,7 +531,8 @@ class Human(Being):
             idBati=idBuilding
             while idBati==idBuilding:
                 idBati=randint(1, len(self.Master.Buildings))
-            doors=self.Master.Buildings[idBati-1].doors
+            batiment=self.Master.Buildings[idBati-1]
+            doors=batiment.doors
             xd,yd=choice(doors)
         else:
             for bati in self.Master.Buildings:
