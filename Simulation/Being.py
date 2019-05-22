@@ -242,6 +242,7 @@ class Zombie(Being):
         return("nothing detected")
 
     def death(self):
+        print("A zombie is dead, the minions of hell grow weaker.")
         self.Master.Zombies.remove(self)
 
 class Human(Being):
@@ -251,8 +252,8 @@ class Human(Being):
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
         self.charisma=charisma             #define the group behavior of the human
-        self.hunger=864000.                  #hunger (decrease by time) 0=death
-        self.energy=259200.                  #energy (decrease by time) 0=death
+        self.hunger=maxHunger                  #hunger (decrease by time) 0=death
+        self.energy=maxEnergy                    #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
         self.aware=False                  #aware the zombie invasion
@@ -269,13 +270,13 @@ class Human(Being):
         if self.energy+e<0:
             self.death()
         else:
-            self.energy=min(259200.,self.energy+e)
+            self.energy=min(maxEnergy,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
             self.death()
         else:
-            self.hunger=min(864000.,self.hunger+h)
+            self.hunger=min(maxHunger,self.hunger+h)
 
     def setGroup(self,newGroup):
         if self.group !=None:
@@ -334,6 +335,7 @@ class Human(Being):
             d=self.vision
             self.addStress()
             T=None #T is target
+            vx,vy=0,0
             for z in zVision:
                 if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**0.5:
                     T=z
@@ -344,16 +346,16 @@ class Human(Being):
                 if vx!=0 or vy!=0:
                     vx,vy=self.maxspeed*vx/((vx**2+vy**2)**0.5),self.maxspeed*vy/((vx**2+vy**2)**0.5)
                 actionMade+="Zombie in sight (fight), "
+                if self.stamina!=0:
+                    self.speed=[vx,vy]
+                else:
+                    self.speed=[vx/4,vy/4]
             else:
                 self.path=self.pathfinding("shelter")
                 self.followpath(True)
                 if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
                     self.flee=False
                 actionMade+="Zombie in sight (flee), "
-            if self.stamina!=0:
-                self.speed=[vx,vy]
-            else:
-                self.speed=[vx/4,vy/4]
 
         elif self.stress>90:
             self.path=[]
@@ -375,17 +377,17 @@ class Human(Being):
                 self.followpath()
                 actionMade+="-Followpath"
             actionMade+=", "
-            
+
         if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger:
             self.addHunger(1440)
             actionMade+="Eat, "
             self.eating=True
-            self.Master.Map[self.cell[0]][self.cell[1]].content=0 
+            self.Master.Map[self.cell[0]][self.cell[1]].content=0
             idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
             self.Master.Buildings[idBuilding-1].nFoodCells-=1
         else:
             self.eating=False
-            
+
         if self.energy<maxEnergy/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
             actionMade+="FindRest"
             if not(self.path):
@@ -396,7 +398,7 @@ class Human(Being):
                 actionMade+="-Followpath"
             actionMade+=", "
 
-        if  self.energy<6000000 and self.stress<90:
+        if self.energy<maxEnergy/3 and self.stress<90:
             if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
                 self.sleeping=True
                 actionMade+="Start sleeping, "
@@ -413,36 +415,38 @@ class Human(Being):
                     self.followpath()
                     actionMade+="-Followpath"
                 actionMade+=", "
-        
+
         elif self.aware and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
             actionMade+="Hide, "
 
         if actionMade=="" and self.path:
             self.followpath()
-            
-        if actionMade=="" and self.aware:
+
+        elif actionMade=="" and self.aware:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed/5
             sx,sy=d*sx,d*sy
             actionMade+="RandomAware, "
 
-        if not(self.aware) and actionMade=="" and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
+        elif not(self.aware) and actionMade=="" and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
             self.pathfinding("shelter")
             self.followpath()
             actionMade+="RandomNotAware, "
 
-        self.addEnergy(-1*dt)
-        self.addHunger(-1*dt)
-        self.stress=self.stress-0.01*dt
+        self.addEnergy(-100)
+        self.addHunger(-100)
+        self.stress=min(0, self.stress-100)
 
-        if self.aware:
-            for z in self.Master.Zombies:
-                if z.cell==self.cell:
+        for z in self.Master.Zombies:
+            if z.cell==self.cell:
+                if self.aware:
                     self.fight()
                     actionMade+="Fight, "
-                    break
+                else:
+                    self.zombification()
+            break
 
         if not(self.sleeping or self.eating) and self.speed!=[0,0]:
             self.move(dt,0)
@@ -471,10 +475,12 @@ class Human(Being):
         return(False)
 
     def death(self):
+        print("Human is dead, mismatch")
         self.Master.Humans.remove(self)
 
     def zombification(self):
-        #time.sleep(zIncubationTime*dt)                #waiting for the human to turn into a zombie
+        print("A zombie has joined the fight, the minions of hell grow stronger.")
+        self.stop+=zIncubationTime               #waiting for the human to turn into a zombie
         x,y=self.cell
         dx,dy=random(),random()
         self.Master.Zombies.append(Zombie(self.Master,[x+dx, y+dy]))             #creating a new zombie
@@ -499,10 +505,10 @@ class Human(Being):
                         if self.Master.Map[x][y].content==ressource and abs((x-xnew))+abs((y-ynew))<distance:
                             xr,yr=x,y
                             distance=abs((xr-xnew))+abs((yr-ynew))
-            
+
             elif ressource=="shelter":
                 xr,yr=(x1+x2)//2, (y1+y2)//2
-            if xr==-1 and yr==-1:
+            if (xr,yr)==(-1,-1):
                 return([])
             if ynew<yr:
                 path.extend([(xnew, y) for y in range(ynew, yr+1)])
@@ -600,6 +606,7 @@ class Human(Being):
         return([])
 
     def fight(self):
+        print(1)
         self.Master.genSound(self.cell[0],self.cell[1], fightVolume)
         Zstrength=0
         Zbattle=[]
@@ -612,7 +619,7 @@ class Human(Being):
         Hbattle=[self]
         self.fighting=True
         for H in self.hProximity():
-            if H.group==self.group or H.morality=="hero":
+            if H.morality=="hero": # or H.group==self.group
                 #Hbattle.append(H)
                 #Hstrength+=H.strength                                     #fight system: uniform law.
                 H.fighting=True
@@ -625,11 +632,9 @@ class Human(Being):
         if Hstrength/(Zstrength+Hstrength)+L<=proba:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()
-                print("A zombie has joined the fight, the minions of hell grow stronger.")
         elif Hstrength/(Zstrength+Hstrength)-L>=proba:        #human stronger than zombie(s)
             for Z in Zbattle:
                 Z.death()
-                print("A zombie has been defeated, the minions of hell grow weaker.")
         else:                                       #human and zombie(s) as strong: human manage to get away
             for Z in Zbattle:
                 Z.stop=2
