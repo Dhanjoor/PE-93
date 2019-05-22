@@ -1,7 +1,7 @@
 from Parameters import *
 import numpy as np
 from math import atan, acos, floor
-from random import random
+from random import random, choice
 
 def nearestIndex(self,L): #return closest being in list L from self
     x,y=self.position
@@ -245,11 +245,12 @@ class Zombie(Being):
         self.Master.Zombies.remove(self)
 
 class Human(Being):
-    def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior):
+    def __init__(self,Master,position,maxspeed,strength,agility,morality,coldblood,behavior,charisma):
         Being.__init__(self,Master,position,maxspeed,hVision,hHearing,strength,agility)
         self.morality=morality              #define the morality of the human
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
+        self.charisma=charisma             #define the group behavior of the human
         self.hunger=864000.                  #hunger (decrease by time) 0=death
         self.energy=259200.                  #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
@@ -258,6 +259,7 @@ class Human(Being):
         self.group=None                #define the social group of the human
         self.path=[]
         self.flee=False
+        self.sleeping=False
 
     def info(self):
         x,y=self.position
@@ -302,37 +304,54 @@ class Human(Being):
                 self.path.pop(0)
 
     def action(self):
+        actionMade=""
         self.fighting=False
+        if self.sleeping:
+            self.addEnergy(10)
+            if self.energy==100:
+                self.sleeping=False
+                self.stop=0
+                actionMade+="Wake up, "
+            else:
+                actionMade+="Sleep, "
+                return(actionMade)
+
         zVision=self.zInSight()
-        if not(self.aware):
-            self.detectZ()
+        if not(self.aware) and self.detectZ(zVision):
+            actionMade+="Aware, "
+
         elif self.flee and self.path:
-            self.followpath()
+            self.followpath(True)
             if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
                 self.flee=False
+            actionMade+="Fleeing, "
+
         elif zVision:
             self.stop=0
             d=self.vision
             self.addStress()
             T=None #T is target
             for z in zVision:
-                if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2):
+                if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**0.5:
                     T=z
-                    d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**(1/2)
+                    d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**0.5
             if self.behavior=="fight":
                 self.path=[]
                 vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
                 if vx!=0 or vy!=0:
-                    vx,vy=self.maxspeed*vx/((vx**2+vy**2)**(1/2)),self.maxspeed*vy/((vx**2+vy**2)**(1/2))
+                    vx,vy=self.maxspeed*vx/((vx**2+vy**2)**0.5),self.maxspeed*vy/((vx**2+vy**2)**0.5)
+                actionMade+="Zombie in sight (fight), "
             else:
                 self.path=self.pathfinding("shelter")
-                self.followpath()
+                self.followpath(True)
                 if self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0:
                     self.flee=False
+                actionMade+="Zombie in sight (flee), "
             if self.stamina!=0:
                 self.speed=[vx,vy]
             else:
                 self.speed=[vx/4,vy/4]
+
         elif self.stress>90:
             self.path=[]
             sx,sy=random(),random()
@@ -341,43 +360,70 @@ class Human(Being):
             d=self.maxspeed*random()
             sx,sy=d*sx,d*sy
             self.speed=[sx,sy]
+            actionMade+="Stressed, "
 
-        #manger
-        elif self.hunger<86400.:
-            if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
+        elif self.hunger<1000000000 and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
+            actionMade+="FindFood"
+            if not(self.path):
                 self.path=self.pathfinding("food")
+                actionMade+="-Pathfinding"
             if self.path:
                 self.followpath()
-                self.stop+=1
-        elif self.energy<0.5*259200.:
-            if self.path==[] and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
+                actionMade+="-Followpath"
+            actionMade+=", "
+
+        elif self.energy<0.5*259200 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
+            actionMade+="FindRest"
+            if not(self.path):
                 self.path=self.pathfinding("rest")
+                actionMade+="-Pathfinding"
             if self.path:
                 self.followpath()
-                self.stop+=1
-        elif self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<20:
-            self.stop+=600*dt
-        elif self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.energy<60:
-            self.stop+=21600*dt
-        elif self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
+                actionMade+="-Followpath"
+            actionMade+=", "
+
+        elif self.aware and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
-        else:
+            actionMade+="Hide, "
+
+        elif self.aware:
             sx,sy=random(),random()
             sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
             d=self.maxspeed/5
             sx,sy=d*sx,d*sy
+            actionMade+="RandomAware, "
+
+        elif not(self.aware) and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
+            self.pathfinding("shelter")
+            self.followpath()
+            actionMade+="RandomNotAware, "
+
         self.addEnergy(-1*dt)
         self.addHunger(-1*dt)
         self.stress=self.stress-0.01*dt
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==3:
+
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<10000000:
             self.addHunger(1440*dt)
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
-            self.addEnergy(12*dt)
-        for z in self.Master.Zombies:
-            if z.cell==self.cell:
-                self.fight()
-                break
-        self.move(dt,0)
+            actionMade+="Eat, "
+            self.eating=True
+        else:
+            self.eating=False
+
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.energy<60 and self.stress>90:
+            self.sleeping=True
+            actionMade+="Start sleeping, "
+
+        if self.aware:
+            for z in self.Master.Zombies:
+                if z.cell==self.cell:
+                    self.fight()
+                    actionMade+="Fight, "
+                    break
+
+        if not(self.sleeping or self.eating):
+            self.move(dt,0)
+            actionMade+="Move."
+        return(actionMade)
 
     def addStress(self):
         if self.coldblood=="zen":
@@ -388,16 +434,17 @@ class Human(Being):
             self.stress+=10
 
 
-    def detectZ(self):
-        if len(self.zInSight())>=10:
+    def detectZ(self, zVision):
+        if len(zVision)>=10:
             self.aware=True
             self.stress=90
-        else:
-            for x in self.zInSight():
-                if x.fighting==True:
-                    self.aware=True
-                    self.stress=90
-                    break
+            return(True)
+        for x in zVision:
+            if x.fighting:
+                self.aware=True
+                self.stress=90
+                return(True)
+        return(False)
 
     def death(self):
         self.Master.Humans.remove(self)
@@ -410,6 +457,7 @@ class Human(Being):
         self.death()
 
     def pathfinding(self,ressource):
+
         x,y=self.cell
         idBuilding=self.Master.Map[x][y].idBuilding
 
@@ -424,9 +472,9 @@ class Human(Being):
                 xr,yr=-1,-1
                 for x in range(min(x1,x2)+1, max(x1,x2)):
                     for y in range(min(y1,y2)+1, max(y1,y2)):
-                        if self.Master.Map[x][y].content==ressource and (x-xnew)+(y-ynew)<distance:
+                        if self.Master.Map[x][y].content==ressource and abs((x-xnew))+abs((y-ynew))<distance:
                             xr,yr=x,y
-                            distance=(x-xnew)+(y-ynew)
+                            distance=abs((xr-xnew))+abs((yr-ynew))
 
             elif ressource=="shelter":
                 xr,yr=(x1+x2)//2, (y1+y2)//2
@@ -443,7 +491,7 @@ class Human(Being):
             return(path)
 
         #If human is already in a building
-        if idBuilding!=0:
+        if idBuilding!=0 and (self.aware or (not(self.aware) and ressource!="shelter")):
             batiment=self.Master.Buildings[idBuilding-1]
             path=[]
             xnew,ynew=x,y
@@ -453,14 +501,22 @@ class Human(Being):
 
         distance=xSize**2+ySize**2
         xd,yd=-1,-1
-        for bati in self.Master.Buildings:
-            if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
-                for door in bati.doors:
-                    r=(door[0]-self.position[0])**2+(door[1]-self.position[1])**2
-                    if r<distance:
-                        batiment=bati
-                        xd,yd=door[0],door[1]    # xd,yd position of door
-                        distance=r
+
+        if not(self.aware) and ressource=="shelter":
+            idBati=idBuilding
+            while idBati==idBuilding:
+                idBati=randint(1, len(self.Master.Buildings))
+            doors=self.Master.Buildings[idBati-1].doors
+            xd,yd=choice(doors)
+        else:
+            for bati in self.Master.Buildings:
+                if (ressource == "food" and bati.nFoodCells>0) or (ressource == "rest" and bati.nRestCells>0) or ressource == "shelter":
+                    for door in bati.doors:
+                        r=(door[0]-self.position[0])**2+(door[1]-self.position[1])**2
+                        if r<distance:
+                            batiment=bati
+                            xd,yd=door[0],door[1]    # xd,yd position of door
+                            distance=r
         if (xd,yd)==(-1,-1):
             return([])
         # We create a table of cells that can be passed through
@@ -470,9 +526,10 @@ class Human(Being):
             for j in range(ySize):
                 if self.Master.Map[i][j].content==1:
                     access[i][j] = -1
-        for zombie in self.Master.Zombies :
-            x,y=zombie.cell
-            access[x][y] = -1
+        if self.aware:
+            for zombie in self.Master.Zombies :
+                x,y=zombie.cell
+                access[x][y] = -1
 
         # All possible Moves to a neighbor cell, list of cells to visit, final path
         moves=[(1,0),(0,1),(-1,0),(0,-1)]

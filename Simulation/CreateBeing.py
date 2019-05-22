@@ -43,9 +43,17 @@ def createHuman(Master):
     else:
         coldblood="stressed"
 
+    charisma=random()
+    if charisma<=pCharisma[0]:
+        charisma="solitary"
+    elif charisma<=pCharisma[1]+pCharisma[0]:
+        charisma="casual"
+    else:
+        charisma="leader"
+
     x,y=randint(2, xSize-3), randint(2, ySize-3)
     while Master.Map[x][y].content!=0:
         x,y=randint(2, xSize-3), randint(2, ySize-3)
     #x,y=x+random(),y+random()
 
-    return(Human(Master, [x,y],ability[0], ability[1], ability[2], coldblood, morality, behavior))
+    return(Human(Master, [x,y],ability[0], ability[1], ability[2], coldblood, morality, behavior, charisma))

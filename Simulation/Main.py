@@ -126,8 +126,8 @@ while Master.Turn<=Tsimulation:
             nh-=1
             continue
         h=Master.Humans[nh]
-        h.action()
-        h.info()
+        print(h.action())
+        #h.info()
         nh-=1
     #print()
     nz=len(Master.Zombies)-1
