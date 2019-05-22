@@ -368,6 +368,7 @@ class Human(Being):
                 self.path=self.pathfinding("food")
                 actionMade+="-Pathfinding"
             if self.path:
+                print(self.path[-1])
                 self.followpath()
                 actionMade+="-Followpath"
             actionMade+=", "
@@ -403,9 +404,10 @@ class Human(Being):
         self.stress=self.stress-0.01*dt
 
         if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<10000000:
-            self.addHunger(1440*dt)
+            self.addHunger(1440)
             actionMade+="Eat, "
             self.eating=True
+            self.Master.Map[self.cell[0]][self.cell[1]].content=0 
         else:
             self.eating=False
 
@@ -475,7 +477,8 @@ class Human(Being):
                         if self.Master.Map[x][y].content==ressource and abs((x-xnew))+abs((y-ynew))<distance:
                             xr,yr=x,y
                             distance=abs((xr-xnew))+abs((yr-ynew))
-
+            if xr==-1 and yr==-1:
+                return([])
             elif ressource=="shelter":
                 xr,yr=(x1+x2)//2, (y1+y2)//2
 
