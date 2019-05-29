@@ -373,7 +373,6 @@ class Human(Being):
                 self.path=self.pathfinding("food")
                 actionMade+="-Pathfinding"
             if self.path:
-                print(self.path[-1])
                 self.followpath()
                 actionMade+="-Followpath"
             actionMade+=", "
