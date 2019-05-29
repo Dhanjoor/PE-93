@@ -78,6 +78,10 @@ for i in range(xSize):
         Master.Map[i][j].idBuilding=int(cell[0])
         Master.Map[i][j].sound=int(cell[1])
         Master.Map[i][j].content=int(cell[2])
+        if int(cell[2])==3:
+            Master.Map[i][j].quantity=foodPerCell
+        elif int(cell[2])==3:
+            Master.Map[i][j].quantity=restPerCell
 
 buildings=lines[-1].split()
 idBuilding=1
@@ -116,7 +120,7 @@ print("Ça part")"""
 with open(journalTxt,"w") as f:
     pass
 
-while Master.Turn<=Tsimulation:
+while Master.Turn<=Tsimulation and Master.Humans and Master.Zombies:
 
     print("======== Tour {} ========".format(Master.Turn))
 
@@ -126,7 +130,7 @@ while Master.Turn<=Tsimulation:
             nh-=1
             continue
         h=Master.Humans[nh]
-        print(h.action())
+        h.action()
         #h.info()
         nh-=1
     #print()

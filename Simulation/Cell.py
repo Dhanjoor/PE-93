@@ -5,6 +5,7 @@ class Cell():
         self.idBuilding=idBuilding
         self.sound=sound
         self.content=content
+        self.quantity=0
         self.humains=[]
         self.zombies=[]
 

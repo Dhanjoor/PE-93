@@ -1,22 +1,24 @@
-mapTxt="Map/manger-dormir.txt"
+mapTxt="Map/test.txt"
 journalTxt="Journal/Journal.txt"
 with open(mapTxt, "r") as f:
     lines=f.read().split("\n")
     xSize=len(lines)-1 #last line shows the buildings
     ySize=len(list(lines[0].split()))
 
-Tsimulation=20
+Tsimulation=100
 dt=1
 attenuationPorte=3
+foodPerCell=10
+restPerCell=10
 
 shoutVolume=0
 fightVolume=3
 uneVariable=0
 unSeuil=0.5
 
-nZombies=10
-nHumans=1
-dInteraction=20
+nZombies=1
+nHumans=100
+dInteraction=2
 
 #Zombie parameters
 zSpeed=1
@@ -31,7 +33,7 @@ zMaxspeed=1
 #Human parameters
 hVision=20
 hHearing=1
-cosVisionAngle=0.5
+cosVisionAngle=0 #ANGLE IGNORE
 maxHunger=86400
 maxEnergy=259200
 

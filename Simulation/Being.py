@@ -303,12 +303,6 @@ class Human(Being):
                 self.cell=[int(self.position[0]), int(self.position[1])]
                 dist-=dToCell
                 self.path.pop(0)
-    def informer(self):
-        if self.aware==True:
-            proxi=self.hProximity()
-            for i in proxi:
-                i.aware=True
-                i.stress=90
 
     def action(self):
         actionMade=""
@@ -319,9 +313,8 @@ class Human(Being):
                 self.sleeping=False
                 self.stop=0
                 actionMade+="Wake up, "
-                self.Master.Map[self.cell[0]][self.cell[1]].content=4
+                self.Master.Map[self.cell[0]][self.cell[1]].quantity+=1
                 idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
-                self.Master.Buildings[idBuilding-1].nRestCells+=1
             else:
                 actionMade+="Sleep, "
                 return(actionMade)
@@ -389,9 +382,11 @@ class Human(Being):
             self.addHunger(1440)
             actionMade+="Eat, "
             self.eating=True
-            self.Master.Map[self.cell[0]][self.cell[1]].content=0
+            self.Master.Map[self.cell[0]][self.cell[1]].quantity-=1
+            if self.Master.Map[self.cell[0]][self.cell[1]].quantity==0:
+                self.Master.Map[self.cell[0]][self.cell[1]].content=0
+                self.Master.Buildings[idBuilding-1].nFoodCells-=1
             idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
-            self.Master.Buildings[idBuilding-1].nFoodCells-=1
         else:
             self.eating=False
 
@@ -406,13 +401,12 @@ class Human(Being):
             actionMade+=", "
 
         if self.energy<maxEnergy/3 and self.stress<90:
-            if self.Master.Map[self.cell[0]][self.cell[1]].content==4:
+            if self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.Master.Map[self.cell[0]][self.cell[1]].quantity>0:
                 self.sleeping=True
                 actionMade+="Start sleeping, "
-                self.Master.Map[self.cell[0]][self.cell[1]].content=5
+                self.Master.Map[self.cell[0]][self.cell[1]].quantity-=1
                 idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
-                self.Master.Buildings[idBuilding-1].nRestCells-=1
-            elif self.Master.Map[self.cell[0]][self.cell[1]].content==5:
+            elif self.Master.Map[self.cell[0]][self.cell[1]].content==4:
                 actionMade+="FindRest"
                 if not(self.path):
                     self.path=self.pathfinding("rest")
@@ -637,7 +631,6 @@ class Human(Being):
         return([])
 
     def fight(self):
-        print(1)
         self.Master.genSound(self.cell[0],self.cell[1], fightVolume)
         Zstrength=0
         Zbattle=[]
