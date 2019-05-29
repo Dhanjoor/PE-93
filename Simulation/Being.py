@@ -303,6 +303,12 @@ class Human(Being):
                 self.cell=[int(self.position[0]), int(self.position[1])]
                 dist-=dToCell
                 self.path.pop(0)
+    def informer(self):
+        if self.aware==True:
+            proxi=self.hProximity()
+            for i in proxi:
+                i.aware=True
+                i.stress=90
 
     def action(self):
         actionMade=""
