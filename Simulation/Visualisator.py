@@ -118,7 +118,7 @@ class Visualisator(Tk):
         self.humains=[]
         for (x,y) in L:
             px,py=int(self.ppc*y),int(self.ppc*x) #inversion of x/y by Tkinter
-            self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ff6607'))
+            self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ff6607',outline='#ff6607'))
 
     def plotZombie(self,L):
         d=int(self.ppc/4)
@@ -127,7 +127,7 @@ class Visualisator(Tk):
         self.zombies=[]
         for (x,y) in L:
             px,py=int(self.ppc*y),int(self.ppc*x) #inversion of x/y by Tkinter
-            self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#9205ff'))
+            self.zombies.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#9205ff',outline='#9205ff))
 
     def plotPath(self,path):
         for x,y in path:
