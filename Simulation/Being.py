@@ -268,13 +268,13 @@ class Human(Being):
 
     def addEnergy(self,e):
         if self.energy+e<0:
-            self.death()
+            self.death("energy")
         else:
             self.energy=min(maxEnergy,self.energy+e)
 
     def addHunger(self,h):
         if self.hunger+h<0:
-            self.death()
+            self.death("hunger")
         else:
             self.hunger=min(maxHunger,self.hunger+h)
 
@@ -379,6 +379,7 @@ class Human(Being):
             actionMade+=", "
 
         if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger:
+            idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
             self.addHunger(1440)
             actionMade+="Eat, "
             self.eating=True
@@ -386,7 +387,6 @@ class Human(Being):
             if self.Master.Map[self.cell[0]][self.cell[1]].quantity==0:
                 self.Master.Map[self.cell[0]][self.cell[1]].content=0
                 self.Master.Buildings[idBuilding-1].nFoodCells-=1
-            idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
         else:
             self.eating=False
 
@@ -452,9 +452,9 @@ class Human(Being):
                 self.followpath()
                 actionMade+="MoveNotAware, "
 
-        self.addEnergy(-100)
-        self.addHunger(-100)
-        self.stress=min(0, self.stress-100)
+        self.addEnergy(-1)
+        self.addHunger(-1)
+        self.stress=min(0, self.stress-1)
 
         for z in self.Master.Zombies:
             xz,yz=z.position
@@ -468,7 +468,7 @@ class Human(Being):
             break
 
         if not(self.sleeping or self.eating) and self.speed!=[0,0]:
-            self.move(dt,0)
+            self.move(dt,moveVolume)
             actionMade+="Move."
         return(actionMade)
 
@@ -493,8 +493,8 @@ class Human(Being):
                 return(True)
         return(False)
 
-    def death(self):
-        print("Human is dead, mismatch")
+    def death(self, cause="Unknown"):
+        print("Human is dead, cause :", cause)
         self.Master.Humans.remove(self)
 
     def zombification(self):
@@ -503,7 +503,7 @@ class Human(Being):
         x,y=self.cell
         dx,dy=random(),random()
         self.Master.Zombies.append(Zombie(self.Master,[x+dx, y+dy]))             #creating a new zombie
-        self.death()
+        self.death("zombifié")
 
     def pathfinding(self,ressource):
 
