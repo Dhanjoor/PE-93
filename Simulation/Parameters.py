@@ -11,6 +11,7 @@ attenuationPorte=3
 foodPerCell=10
 restPerCell=10
 
+moveVolume=0
 shoutVolume=0
 fightVolume=3
 uneVariable=0
