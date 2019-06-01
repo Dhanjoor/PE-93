@@ -367,7 +367,7 @@ class Human(Being):
             self.speed=[sx,sy]
             actionMade+="Stressed, "
 
-        elif self.hunger<maxHunger/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
+        elif self.hunger<maxHunger/2 and self.Master.Map[self.cell[0]][self.cell[1]].content!=3:
             actionMade+="FindFood"
             if not(self.path):
                 self.path=self.pathfinding("food")
@@ -377,7 +377,7 @@ class Human(Being):
                 actionMade+="-Followpath"
             actionMade+=", "
 
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger/3:
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger and self.stress<90:
             idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
             self.addHunger(10)
             actionMade+="Eat, "
@@ -389,7 +389,7 @@ class Human(Being):
         else:
             self.eating=False
 
-        if self.energy<maxEnergy/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4:
+        if self.energy<maxEnergy/3 and self.Master.Map[self.cell[0]][self.cell[1]].content!=4 and self.stress<90:
             actionMade+="FindRest"
             if not(self.path):
                 self.path=self.pathfinding("rest")
@@ -399,7 +399,7 @@ class Human(Being):
                 actionMade+="-Followpath"
             actionMade+=", "
 
-        if self.energy<maxEnergy/3 and self.stress<90:
+        if self.energy<maxEnergy/4 and self.stress<90:
             if self.Master.Map[self.cell[0]][self.cell[1]].content==4 and self.Master.Map[self.cell[0]][self.cell[1]].quantity>0:
                 self.sleeping=True
                 actionMade+="Start sleeping, "
@@ -417,6 +417,7 @@ class Human(Being):
 
         if actionMade=="" and self.path:
             self.followpath()
+            actionMade+="Followpath, "
 
         elif self.aware and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
