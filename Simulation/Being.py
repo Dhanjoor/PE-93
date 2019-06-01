@@ -309,7 +309,7 @@ class Human(Being):
         self.fighting=False
         if self.sleeping:
             self.addEnergy(10)
-            if self.energy==100:
+            if self.energy==maxEnergy:
                 self.sleeping=False
                 self.stop=0
                 actionMade+="Wake up, "
@@ -333,15 +333,15 @@ class Human(Being):
             self.stop=0
             d=self.vision
             self.addStress()
-            T=None #T is target
+            target=None
             vx,vy=0,0
             for z in zVision:
                 if d>((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**0.5:
-                    T=z
+                    target=z
                     d=((self.position[0]-z.position[0])**2+(self.position[1]-z.position[1])**2)**0.5
-            if self.behavior=="fight":
+            if self.behavior=="fight" and target:
                 self.path=[]
-                vx,vy=T.position[0]-self.position[0],T.position[1]-self.position[1]
+                vx,vy=target.position[0]-self.position[0],target.position[1]-self.position[1]
                 if vx!=0 or vy!=0:
                     vx,vy=self.maxspeed*vx/((vx**2+vy**2)**0.5),self.maxspeed*vy/((vx**2+vy**2)**0.5)
                 actionMade+="Zombie in sight (fight), "
@@ -377,9 +377,9 @@ class Human(Being):
                 actionMade+="-Followpath"
             actionMade+=", "
 
-        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger:
+        if self.Master.Map[self.cell[0]][self.cell[1]].content==3 and self.hunger<maxHunger/3:
             idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
-            self.addHunger(1440)
+            self.addHunger(10)
             actionMade+="Eat, "
             self.eating=True
             self.Master.Map[self.cell[0]][self.cell[1]].quantity-=1
@@ -415,20 +415,26 @@ class Human(Being):
                     actionMade+="-Followpath"
                 actionMade+=", "
 
+        if actionMade=="" and self.path:
+            self.followpath()
+
         elif self.aware and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and self.behavior=="hide":
             self.speed=[0,0]
             actionMade+="Hide, "
 
-        if actionMade=="" and self.path:
-            self.followpath()
+#        elif actionMade=="" and self.aware:
+#            sx,sy=random(),random()
+#            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
+#            d=self.maxspeed/2
+#            sx,sy=d*sx,d*sy
+#            self.speed=[sx, sy]
+#            actionMade+="RandomAware, "
 
-        elif actionMade=="" and self.aware:
-            sx,sy=random(),random()
-            sx,sy=sx/((sx**2+sy**2)**(1/2)),sy/((sx**2+sy**2)**(1/2))
-            d=self.maxspeed/2
-            sx,sy=d*sx,d*sy
-            self.speed=[sx, sy]
-            actionMade+="RandomAware, "
+        elif self.aware and actionMade=="":
+            self.path=self.pathfinding("shelter")
+            if self.path:
+                self.followpath()
+                actionMade+="Pathfinding-shelter, "
 
         elif not(self.aware) and actionMade=="" and self.Master.Map[self.cell[0]][self.cell[1]].idBuilding!=0 and len(self.Master.Buildings)>1:
             self.path=self.pathfinding("shelter")
@@ -458,7 +464,7 @@ class Human(Being):
         for z in self.Master.Zombies:
             xz,yz=z.position
             x,y=self.position
-            if (x-xz)**2+(y-yz)**2<=dInteraction**2/4:
+            if (x-xz)**2+(y-yz)**2<=dInteraction**2:
                 if self.aware:
                     self.fight()
                     actionMade+="Fight, "
@@ -481,7 +487,7 @@ class Human(Being):
 
 
     def detectZ(self, zVision):
-        if len(zVision)>=10:
+        if len(zVision)>=nZombieAware:
             self.aware=True
             self.stress=90
             return(True)
@@ -498,11 +504,11 @@ class Human(Being):
 
     def zombification(self):
         print("A zombie has joined the fight, the minions of hell grow stronger.")
-        self.stop+=zIncubationTime               #waiting for the human to turn into a zombie
         x,y=self.cell
         dx,dy=random(),random()
         self.Master.Zombies.append(Zombie(self.Master,[x+dx, y+dy]))             #creating a new zombie
-        self.death("zombifié")
+        self.Master.Zombies[-1].stop=zIncubationTime
+        self.death("zombifié, aware:"+ str(self.aware))
 
     def pathfinding(self,ressource):
 
@@ -520,7 +526,7 @@ class Human(Being):
                 xr,yr=-1,-1
                 for x in range(min(x1,x2)+1, max(x1,x2)):
                     for y in range(min(y1,y2)+1, max(y1,y2)):
-                        if self.Master.Map[x][y].content==ressource and abs((x-xnew))+abs((y-ynew))<distance:
+                        if self.Master.Map[x][y].content==ressource and self.Master.Map[x][y].quantity>0 and abs((x-xnew))+abs((y-ynew))<distance:
                             xr,yr=x,y
                             distance=abs((xr-xnew))+abs((yr-ynew))
 
@@ -643,15 +649,16 @@ class Human(Being):
         self.fighting=True
         for H in self.hProximity():
             if H.morality=="hero": # or H.group==self.group
-                #Hbattle.append(H)
-                #Hstrength+=H.strength                                     #fight system: uniform law.
+                Hbattle.append(H)
+                Hstrength+=H.strength                                     #fight system: uniform law.
                 H.fighting=True
                 H.speed=[0,0]
         proba=random()
+        print("fight: Humans:",Hstrength, "Zombies:", Zstrength, "proba:", proba)
         if Hstrength<Zstrength:
-            L=Hstrength/(2*(Zstrength+Hstrength))
+            L=Hstrength/(1.2*(Zstrength+Hstrength))
         else:
-            L=Zstrength/(2*(Zstrength+Hstrength))
+            L=Zstrength/(1.2*(Zstrength+Hstrength))
         if Hstrength/(Zstrength+Hstrength)+L<=proba:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()

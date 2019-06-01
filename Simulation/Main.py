@@ -66,6 +66,12 @@ class Master:
 
 Master=Master()
 
+#Save the parameters
+with open("Parameters.py", "r") as f:
+    parameters=f.read()
+with open(journalTxt.split("/")[0]+"/"+"parameters_"+journalTxt.split("/")[1], "w") as f:
+    f.write(parameters)
+
 #Map creation
 Master.Map=[[Cell(i,j) for j in range(ySize)] for i in range(xSize)]
 
@@ -80,7 +86,7 @@ for i in range(xSize):
         Master.Map[i][j].content=int(cell[2])
         if int(cell[2])==3:
             Master.Map[i][j].quantity=foodPerCell
-        elif int(cell[2])==3:
+        elif int(cell[2])==4:
             Master.Map[i][j].quantity=restPerCell
 
 buildings=lines[-1].split()
@@ -130,7 +136,7 @@ while Master.Turn<=Tsimulation and Master.Humans and Master.Zombies:
             nh-=1
             continue
         h=Master.Humans[nh]
-        h.action()
+        print(h.action())
         #h.info()
         nh-=1
     #print()
