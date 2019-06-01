@@ -500,8 +500,10 @@ class Human(Being):
         return(False)
 
     def death(self, cause="Unknown"):
-        print("Human is dead, cause :", cause)
-        self.Master.Humans.remove(self)
+        try:
+            self.Master.Humans.remove(self)
+        except:
+            pass
 
     def zombification(self):
         print("A zombie has joined the fight, the minions of hell grow stronger.")
