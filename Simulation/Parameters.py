@@ -42,7 +42,7 @@ pAbilities=[1/4, 1/2, 1/4] #proba for general stats
 
 pMoralities=[1/4, 1/2, 1/4] #proba of being "evil","neutral","hero"
 
-pBehaviors=[3/7, 4/7, 0/7]  #proba of being using mostly "flee","hide","fight"
+pBehaviors=[2/7, 4/7, 1/7]  #proba of being using mostly "flee","hide","fight"
 
 pColdblood=[1/3, 1/3, 1/3] #proba of being "zen","stable","stressed"
 
