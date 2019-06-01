@@ -66,12 +66,6 @@ class Master:
 
 Master=Master()
 
-#Save the parameters
-with open("Parameters.py", "r") as f:
-    parameters=f.read()
-with open(journalTxt.split("/")[0]+"/"+"parameters_"+journalTxt.split("/")[1], "w") as f:
-    f.write(parameters)
-
 #Map creation
 Master.Map=[[Cell(i,j) for j in range(ySize)] for i in range(xSize)]
 
@@ -187,6 +181,12 @@ while Master.Turn<=Tsimulation and Master.Humans and Master.Zombies:
 
     Master.Turn+=1
     Master.Events=[]
+
+#Save the parameters
+with open("Parameters.py", "r") as f:
+    parameters=f.read()
+with open(journalTxt.split("/")[0]+"/"+"parameters_"+journalTxt.split("/")[1], "w") as f:
+    f.write(parameters)
 
 """ Debug
 for h in Master.Humans:
