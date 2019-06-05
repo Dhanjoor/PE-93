@@ -130,7 +130,7 @@ while Master.Turn<=Tsimulation and Master.Humans and Master.Zombies:
             nh-=1
             continue
         h=Master.Humans[nh]
-        print(h.action())
+        h.action()
         #h.info()
         nh-=1
     #print()
@@ -188,6 +188,7 @@ with open("Parameters.py", "r") as f:
 with open(journalTxt.split("/")[0]+"/"+"parameters_"+journalTxt.split("/")[1], "w") as f:
     f.write(parameters)
 
+
 print("Humans remaining :", len(Master.Humans), "Zombies remaining :", len(Master.Zombies))
 results={"strong":0, "casual":0, "weak":0, "zen":0, "stable":0, "stressed":0, "evil":0, "neutral":0, "hero":0, "flee":0, "hide":0, "fight":0}
 for h in Master.Humans:
@@ -201,7 +202,7 @@ for h in Master.Humans:
     else:
         results["strong"]+=1
 print(results)
-    
+
 """ Debug
 for h in Master.Humans:
     h.info()

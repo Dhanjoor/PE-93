@@ -225,19 +225,20 @@ class Zombie(Being):
             self.move(dt,0)
             return("sound heard")
 
-        """zVision=self.zInSight()
-        cible=nearestIndex(self, zVision)
-        if cible!=-1:
-            xz,yz=zVision[cible].position
-            r=((x-xz)**2+(y-yz)**2)**0.5
-            if r==0:
-                self.speed=[0,0]
-                return("zombie on position")
-            if r<self.maxspeed*dt:
-                r=self.maxspeed*dt
-            self.speed=[(xz-x)/r,(yz-y)/r]
-            self.move(dt,0)
-            return("zombie in sight")"""
+        if random()>0.5:
+            zVision=self.zInSight()
+            cible=nearestIndex(self, zVision)
+            if cible!=-1:
+                xz,yz=zVision[cible].position
+                r=((x-xz)**2+(y-yz)**2)**0.5
+                if r==0:
+                    self.speed=[0,0]
+                    return("zombie on position")
+                if r<self.maxspeed*dt:
+                    r=self.maxspeed*dt
+                self.speed=[(xz-x)/r,(yz-y)/r]
+                self.move(dt,0)
+                return("zombie in sight")
 
         return("nothing detected")
 
@@ -312,6 +313,7 @@ class Human(Being):
             if self.energy==maxEnergy:
                 self.sleeping=False
                 self.stop=0
+                self.stress=0
                 actionMade+="Wake up, "
                 self.Master.Map[self.cell[0]][self.cell[1]].quantity+=1
                 idBuilding=self.Master.Map[self.cell[0]][self.cell[1]].idBuilding
@@ -500,6 +502,7 @@ class Human(Being):
         return(False)
 
     def death(self, cause="Unknown"):
+        print("Human is dead, cause :", cause)
         try:
             self.Master.Humans.remove(self)
         except:
@@ -656,12 +659,12 @@ class Human(Being):
                 Hstrength+=H.strength                                     #fight system: uniform law.
                 H.fighting=True
                 H.speed=[0,0]
-        proba=random()
+        proba=random()*0.9 + 0.05
         print("fight: Humans:",Hstrength, "Zombies:", Zstrength, "proba:", proba)
         if Hstrength<Zstrength:
-            L=Hstrength/(1.2*(Zstrength+Hstrength))
+            L=Hstrength/(2*(Zstrength+Hstrength))
         else:
-            L=Zstrength/(1.2*(Zstrength+Hstrength))
+            L=Zstrength/(2*(Zstrength+Hstrength))
         if Hstrength/(Zstrength+Hstrength)+L<=proba:         #zombie(s) stronger than human
             for H in Hbattle:
                 H.zombification()
