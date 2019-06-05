@@ -225,7 +225,7 @@ class Zombie(Being):
             self.move(dt,0)
             return("sound heard")
 
-        zVision=self.zInSight()
+        """zVision=self.zInSight()
         cible=nearestIndex(self, zVision)
         if cible!=-1:
             xz,yz=zVision[cible].position
@@ -237,7 +237,7 @@ class Zombie(Being):
                 r=self.maxspeed*dt
             self.speed=[(xz-x)/r,(yz-y)/r]
             self.move(dt,0)
-            return("zombie in sight")
+            return("zombie in sight")"""
 
         return("nothing detected")
 
@@ -252,8 +252,8 @@ class Human(Being):
         self.coldblood=coldblood          #define how the human endure the stress
         self.behavior=behavior              #define the type of survival (hide,flee,fight,...)
         self.charisma=charisma             #define the group behavior of the human
-        self.hunger=maxHunger                  #hunger (decrease by time) 0=death
-        self.energy=maxEnergy                    #energy (decrease by time) 0=death
+        self.hunger=randint(100, maxHunger)                  #hunger (decrease by time) 0=death
+        self.energy=randint(100, maxEnergy)                    #energy (decrease by time) 0=death
         self.stress=0                  #quantity of stress (determine the quality of the decisions)
         self.stamina=100                #stamina (decrease when running) 0=no more running
         self.aware=False                   #aware the zombie invasion
