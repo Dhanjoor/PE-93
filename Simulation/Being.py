@@ -463,6 +463,7 @@ class Human(Being):
         self.addEnergy(-1)
         self.addHunger(-1)
         self.stress=min(0, self.stress-1)
+        self.informer()
 
         for z in self.Master.Zombies:
             xz,yz=z.position
@@ -502,6 +503,14 @@ class Human(Being):
                 return(True)
         return(False)
 
+    def informer(self):
+        if self.aware:
+            proxi=self.hProximity()
+            for i in proxi:
+                if not(i.aware):
+                    i.aware=True
+                    i.stress=90
+                
     def death(self, cause="Unknown"):
         print("Human is dead, cause :", cause)
         try:
