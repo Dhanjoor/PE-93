@@ -74,7 +74,7 @@ class Being:
         self.vision=vision              #vision distance
         self.hearing=hearing                    #hearing threshold
         self.strength=strength              #physical trait (don't change)
-        self.agilty=agility                 #agility trait (don't change)
+        self.agility=agility                 #agility trait (don't change)
         self.stop=0                         #countdown when the entity stop moving
         self.maxspeed=maxspeed              #maximal speed
         self.fighting=False                 #Shows whether or not the being is fighting this turn
