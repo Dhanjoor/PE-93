@@ -34,11 +34,11 @@ class Visualisator(Tk):
         batis=lines[-1]
         lines=lines[0:len(lines)-1]
         self.grid=[lines[i].split(' ') for i in range(len(lines))]
-        self.ppc=int(min(self.winfo_screenwidth()/ySize,(self.winfo_screenheight()-300)/xSize))
+        self.ppc=int(min(self.winfo_screenwidth()/ySize,(self.winfo_screenheight()-100)/xSize))
         self.canvas = Canvas(self,width=ySize*self.ppc,height=xSize*self.ppc,bg='white')
-        self.timer=Label(self,width=self.ppc,text="",font=("Arial",20))
-        self.sheet1=Label(self,width=self.ppc,text="Humains ",font=("Arial",12))
-        self.sheet2=Label(self,width=self.ppc,text="Zombies ",font=("Arial",12))
+        self.timer=Label(self,width=self.ppc+20,text="Commencer",font=("Arial",20))
+        self.sheet1=Label(self,width=self.ppc+10,text="Humains ",font=("Arial",12))
+        self.sheet2=Label(self,width=self.ppc+10,text="Zombies ",font=("Arial",12))
         self.canvas.config(width=self.ppc*ySize,height=self.ppc*xSize)
         self.label = Label(self, text = 'Vitesse de la simulation : ')
         self.texte = Entry(self, bg ='bisque', fg='maroon')
@@ -112,7 +112,7 @@ class Visualisator(Tk):
         return('#ff'+txt+txt)
 
     def plotHumain(self,L):
-        d=int(self.ppc/3)*3
+        d=int(self.ppc/3)
         for oval in self.humains:
             self.canvas.delete(oval)
         self.humains=[]
@@ -121,7 +121,7 @@ class Visualisator(Tk):
             self.humains.append(self.canvas.create_oval(px-d,py-d,px+d,py+d,fill='#ff6607',outline='#ff6607'))
 
     def plotZombie(self,L):
-        d=int(self.ppc/4)*4
+        d=int(self.ppc/4)
         for oval in self.zombies:
             self.canvas.delete(oval)
         self.zombies=[]
@@ -151,9 +151,9 @@ class Visualisator(Tk):
 
             Lh,Lz=[],[]
             lines=turns[t].split("\n")
-            self.timer.config(text="T:"+str(t+1))
-            self.sheet1.config(text="H:{}".format(len(self.humains)))
-            self.sheet2.config(text="Z:{}".format(len(self.zombies)))
+            self.timer.config(text="Tour "+str(t+1))
+            self.sheet1.config(text="Humains : {}".format(len(self.humains)))
+            self.sheet2.config(text="Zombies : {}".format(len(self.zombies)))
             debut,fin=1,int(lines[0])+1
             for i in range(debut,fin):
                 humain=lines[i].split("/")

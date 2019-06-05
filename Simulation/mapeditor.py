@@ -59,16 +59,16 @@ class Map_editor(Tk):
         self.yEntry = Entry(self.frame0)
         self.yEntry.insert(0,'300')
         self.goBut = Button(self.frame0,text="Okay",command=self.setDim)
-        
+
         self.frame1 = Frame(self)
         self.filename_label = Label(self.frame1,text='Nom de la carte (no file extension)')
         self.filename_entry = Entry(self.frame1)
-        
+
         self.frame2 = Frame(self)
         self.finish_button = Button(self.frame2,text='Sauvegarder',command=self.finish)
         self.open_button = Button(self.frame2,text='Ouvrir',command=self.load)
         self.clear_button = Button(self.frame2,text='Nettoyer',command=self.clear)
-        
+
         self.frame3 = Frame(self)
         self.onclic_label = Label(self.frame3,text='Cliquer pour ajouter un mur')
         self.onclicwall_button = Button(self.frame3,text='Mur au clic',command=lambda: self.setclic('w'))
@@ -76,10 +76,10 @@ class Map_editor(Tk):
         self.onclicbuild_button = Button(self.frame3,text='Batiment au clic',command=lambda: self.setclic('b'))
         self.onclicfood_button = Button(self.frame3,text='Zone food au clic',command=lambda: self.setclic('f'))
         self.onclicrest_button = Button(self.frame3,text='Zone repos au clic',command=lambda: self.setclic('r'))
-        self.onclicclear_button= Button(self.frame3,text='Nettoyerbis au clic',command=lambda: self.setclic('clb'))
+        self.onclicclear_button= Button(self.frame3,text='Nettoyer au clic',command=lambda: self.setclic('clb'))
         self.selectbati_button= Button(self.frame3,text='Carte au clic',command=self.loadbis)
         self.onclicput_button= Button(self.frame3,text='Mettre au clic',command=lambda: self.setclic('cp'))
-        
+
         self.frame4 = Frame(self)
         self.nBatiLabel = Label(self.frame4,text='------------------ \n numero du batiment:0')
         self.remBatiBut = Button(self.frame4,text='enlever dernier batiment',command=self.cancelBati)
@@ -91,7 +91,7 @@ class Map_editor(Tk):
         self.yLabel.grid(row=1,column=0)
         self.yEntry.grid(row=1,column=1)
         self.goBut.grid(row=2,column=0,columnspan=2)
-        
+
         self.frame1.grid(row=1,column=1)
         self.filename_label.grid(row=0,column=0)
         self.filename_entry.grid(row=1,column=0)
@@ -113,11 +113,11 @@ class Map_editor(Tk):
         self.selectbati_button.grid(row=8,column=0)
         self.onclicput_button.grid(row=9,column=0)
 
-        
+
         self.frame4.grid(row=4,column=1)
         self.nBatiLabel.grid(row=0,column=0)
         self.remBatiBut.grid(row=1,column=0)
-        
+
     def cancelBati(self):
         if self.nbati>1:
             for i in range(self.x_size):
@@ -128,7 +128,7 @@ class Map_editor(Tk):
             self.batiments.pop()
             self.nbati=len(self.batiments)+1
             self.nBatiLabel.config(text='------------------ \n numero du batiment:'+str(self.nbati))
-        
+
     def setDim(self):
         self.x_size=int(self.xEntry.get())    # In cells
         self.y_size=int(self.yEntry.get())    # In cells
@@ -136,7 +136,7 @@ class Map_editor(Tk):
         self.ppc=int(min((self.winfo_screenwidth()-300)/self.y_size,self.winfo_screenheight()/self.x_size))
         self.canvas = Canvas(self,width=self.y_size*self.ppc,height=self.x_size*self.ppc,bg='white')
         self.canvas.grid(row=0,column=0,rowspan=10)
-        
+
         # Binding
         self.canvas.bind('<Button-1>',self.clic)
         self.canvas.bind('<Button-3>',self.rclic)
@@ -246,7 +246,7 @@ class Map_editor(Tk):
             self.add_wallinbati(min(nx1,nx2),ny)
             self.add_wallinbati(max(nx1,nx2),ny)
         self.batiments.append([[nx1,ny1,nx2,ny2],0,0,[]])
-        
+
     def isInBati(self,x,y):
         for i in range(len(self.batiments)):
             [l,a,b,c]=self.batiments[i]
@@ -354,7 +354,7 @@ class Map_editor(Tk):
 
     def leave(self,event):
         self.destroy()
-        
+
     def loadbis(self):
         mafenetre = Tk()
         mafenetre.title('selectionner la carte')
@@ -364,7 +364,7 @@ class Map_editor(Tk):
         texte.focus_set()
         texte.pack(side = LEFT, padx = 5, pady = 5)
         bouton = Button(mafenetre, text ='OK', command = lambda :self.carte_temp(texte,mafenetre)).pack(side=LEFT, padx = 5,pady = 5)
-    
+
     def carte_temp(self,texte,fenetre):
         filename='Map/'+texte.get()
         fenetre.destroy()
