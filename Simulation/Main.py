@@ -188,6 +188,20 @@ with open("Parameters.py", "r") as f:
 with open(journalTxt.split("/")[0]+"/"+"parameters_"+journalTxt.split("/")[1], "w") as f:
     f.write(parameters)
 
+print("Humans remaining :", len(Master.Humans), "Zombies remaining :", len(Master.Zombies))
+results={"strong":0, "casual":0, "weak":0, "zen":0, "stable":0, "stressed":0, "evil":0, "neutral":0, "hero":0, "flee":0, "hide":0, "fight":0}
+for h in Master.Humans:
+    results[h.morality]+=1
+    results[h.behavior]+=1
+    results[h.coldblood]+=1
+    if h.agility==1:
+        results["weak"]+=1
+    elif h.agility==2:
+        results["casual"]+=1
+    else:
+        results["strong"]+=1
+print(results)
+    
 """ Debug
 for h in Master.Humans:
     h.info()
