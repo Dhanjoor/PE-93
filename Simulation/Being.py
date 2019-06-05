@@ -470,6 +470,7 @@ class Human(Being):
             if (x-xz)**2+(y-yz)**2<=dInteraction**2:
                 if self.aware:
                     self.fight()
+                    self.addStress()
                     actionMade+="Fight, "
                 else:
                     self.zombification()
