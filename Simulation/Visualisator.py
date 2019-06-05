@@ -165,7 +165,7 @@ class Visualisator(Tk):
             debut,fin=fin+1,fin+1+int(lines[fin])
             for i in range(debut,fin):
                 sound=lines[i].split("/")
-                self.genSound(int(sound[0]),int(sound[1]),int(sound[2])) #inversion of x/y by Tkinter
+                #self.genSound(int(sound[0]),int(sound[1]),int(sound[2])) #inversion of x/y by Tkinter
             self.plotHumain(Lh)
             self.plotZombie(Lz)
             if t<len(turns)-1:
